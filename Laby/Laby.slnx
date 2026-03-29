@@ -2,4 +2,5 @@
   <Project Path="Lab01/Lab01.csproj" />
   <Project Path="Lab02/Lab02.csproj" />
   <Project Path="Lab03/Lab03.csproj" Id="76be0a25-0937-41d7-8236-c3e801ba86ff" />
+  <Project Path="Lab04/Lab04.csproj" Id="b41eb2bd-8397-4d89-8df7-d7c1ad4eb04f" />
 </Solution>
