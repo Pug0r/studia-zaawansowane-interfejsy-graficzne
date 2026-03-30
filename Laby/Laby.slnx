@@ -3,4 +3,6 @@
   <Project Path="Lab02/Lab02.csproj" />
   <Project Path="Lab03/Lab03.csproj" Id="76be0a25-0937-41d7-8236-c3e801ba86ff" />
   <Project Path="Lab04/Lab04.csproj" Id="b41eb2bd-8397-4d89-8df7-d7c1ad4eb04f" />
+  <Project Path="Lab05-mstest/Lab05-mstest.csproj" Id="452022a7-b9e1-4425-a452-b3fc3eb4b195" />
+  <Project Path="Lab05-nunit/Lab05-nunit.csproj" Id="efb06dc9-1206-43f2-b939-b43c9c857d2e" />
 </Solution>
