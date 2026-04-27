@@ -7,4 +7,5 @@
   <Project Path="Lab05-mstest/Lab05-mstest.csproj" Id="452022a7-b9e1-4425-a452-b3fc3eb4b195" />
   <Project Path="Lab05-nunit/Lab05-nunit.csproj" Id="efb06dc9-1206-43f2-b939-b43c9c857d2e" />
   <Project Path="Lab06-gamelib/Lab06-gamelib.csproj" Id="53a3b75b-6138-4e51-8cf0-3607b10c12e8" />
+  <Project Path="Lab07-kontrolka/Lab07-kontrolka.csproj" Id="73e0ceb2-8673-4074-9e5b-0903e0efab70" />
 </Solution>
