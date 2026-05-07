@@ -63,9 +63,8 @@ namespace Lab06_gamelib
             if (player.IsHuman && player.ConsecutiveSkips < 2)
             {
                 Console.WriteLine($"{player.Name} credits: {player.Credits}");
-                Console.Write("Press Enter to roll or type skip: ");
-                var input = Console.ReadLine();
-                if (!string.IsNullOrWhiteSpace(input) && input.Trim().Equals("skip", StringComparison.OrdinalIgnoreCase))
+                int? choice = AskChoice("Choose action: 1-roll, 2-skip", 1, 2, true);
+                if (choice == 2)
                 {
                     player.ConsecutiveSkips++;
                     Console.WriteLine($"{player.Name} skips by choice.");
@@ -138,11 +137,10 @@ namespace Lab06_gamelib
                     var pos = state.World.RailStops[i];
                     Console.WriteLine($"{i}: ({pos.X},{pos.Y})");
                 }
-                Console.Write("Choice: ");
-                var input = Console.ReadLine();
-                if (int.TryParse(input, out int index) && index >= 0 && index < state.World.RailStops.Count)
+                int? index = AskChoice("Rail stop index", 0, state.World.RailStops.Count - 1, true);
+                if (index != null)
                 {
-                    var pos = state.World.RailStops[index];
+                    var pos = state.World.RailStops[index.Value];
                     player.X = pos.X;
                     player.Y = pos.Y;
                     player.TrackIndex = state.World.Track.FindIndex(p => p.X == pos.X && p.Y == pos.Y);
@@ -283,6 +281,7 @@ namespace Lab06_gamelib
                         player.OwnedFieldIds.Add(planet.Id);
                         actionUsed = true;
                         Console.WriteLine($"{player.Name} built a port on {planet.Name}.");
+                        UpdateSystemOwnership(state, planet.SystemId);
                     }
                 }
                 return;
@@ -298,21 +297,59 @@ namespace Lab06_gamelib
                 return;
             }
 
+            var system = FindSystem(state, planet.SystemId);
+            if (system != null && system.OwnerId == player.Id)
+            {
+                if (player.IsHuman)
+                {
+                    int? input = AskChoice("Choose upgrade: 1-settlement, 2-mine, 3-farm, 4-shipyard, 5-asteroid mine", 1, 5, true);
+                    if (input == 1)
+                    {
+                        actionUsed = TryUpgradeSettlement(player, planet, settings);
+                    }
+                    else if (input == 2)
+                    {
+                        actionUsed = TryUpgradeMine(player, planet, settings);
+                    }
+                    else if (input == 3)
+                    {
+                        actionUsed = TryUpgradeFarm(player, planet, settings);
+                    }
+                    else if (input == 4)
+                    {
+                        actionUsed = TryBuildShipyard(player, system, settings);
+                    }
+                    else if (input == 5)
+                    {
+                        actionUsed = TryUpgradeAsteroidMine(player, system, settings);
+                    }
+                }
+                else
+                {
+                    actionUsed = TryBuildShipyard(player, system, settings)
+                        || TryUpgradeAsteroidMine(player, system, settings)
+                        || TryUpgradeSettlement(player, planet, settings)
+                        || TryUpgradeMine(player, planet, settings)
+                        || TryUpgradeFarm(player, planet, settings);
+                }
+
+                return;
+            }
+
             if (player.IsHuman)
             {
-                Console.WriteLine("Choose upgrade: 1-settlement, 2-mine, 3-farm, Enter to skip");
-                var input = Console.ReadLine();
-                if (input == "1")
+                int? input = AskChoice("Choose upgrade: 1-settlement, 2-mine, 3-farm", 1, 3, true);
+                if (input == 1)
                 {
-                    TryUpgradeSettlement(player, planet, settings);
+                    actionUsed = TryUpgradeSettlement(player, planet, settings);
                 }
-                else if (input == "2")
+                else if (input == 2)
                 {
-                    TryUpgradeMine(player, planet, settings);
+                    actionUsed = TryUpgradeMine(player, planet, settings);
                 }
-                else if (input == "3")
+                else if (input == 3)
                 {
-                    TryUpgradeFarm(player, planet, settings);
+                    actionUsed = TryUpgradeFarm(player, planet, settings);
                 }
             }
             else
@@ -325,6 +362,43 @@ namespace Lab06_gamelib
                     }
                 }
             }
+        }
+
+        private bool TryBuildShipyard(Player player, PlanetarySystem system, GameSettings settings)
+        {
+            if (system.HasShipyard)
+            {
+                return false;
+            }
+
+            if (player.Credits < settings.ShipyardCost)
+            {
+                return false;
+            }
+
+            player.Credits -= settings.ShipyardCost;
+            system.HasShipyard = true;
+            Console.WriteLine($"{player.Name} built a shipyard in {system.Name}.");
+            return true;
+        }
+
+        private bool TryUpgradeAsteroidMine(Player player, PlanetarySystem system, GameSettings settings)
+        {
+            if (system.AsteroidMineLevel >= settings.AsteroidMineUpgradeCosts.Count)
+            {
+                return false;
+            }
+
+            int cost = settings.AsteroidMineUpgradeCosts[system.AsteroidMineLevel];
+            if (player.Credits < cost)
+            {
+                return false;
+            }
+
+            player.Credits -= cost;
+            system.AsteroidMineLevel++;
+            Console.WriteLine($"{player.Name} upgraded asteroid mine to {system.AsteroidMineLevel} in {system.Name}.");
+            return true;
         }
 
         private bool TryUpgradeSettlement(Player player, Planet planet, GameSettings settings)
@@ -386,9 +460,44 @@ namespace Lab06_gamelib
 
         private bool AskYesNo(string prompt)
         {
-            Console.Write($"{prompt} (y/n): ");
-            var input = Console.ReadLine();
-            return input != null && input.Trim().Equals("y", StringComparison.OrdinalIgnoreCase);
+            while (true)
+            {
+                Console.Write($"{prompt} (y/n): ");
+                var input = Console.ReadLine();
+                if (input == null)
+                {
+                    continue;
+                }
+
+                var trimmed = input.Trim().ToLowerInvariant();
+                if (trimmed == "y")
+                {
+                    return true;
+                }
+
+                if (trimmed == "n")
+                {
+                    return false;
+                }
+            }
+        }
+
+        private int? AskChoice(string prompt, int min, int max, bool allowEmpty)
+        {
+            while (true)
+            {
+                Console.Write($"{prompt}: ");
+                var input = Console.ReadLine();
+                if (string.IsNullOrWhiteSpace(input))
+                {
+                    return allowEmpty ? null : 0;
+                }
+
+                if (int.TryParse(input.Trim(), out int value) && value >= min && value <= max)
+                {
+                    return value;
+                }
+            }
         }
 
         private void ApplyIncomeIfDue(GameState state, GameSettings settings)
@@ -565,8 +674,107 @@ namespace Lab06_gamelib
         {
             foreach (var player in state.Players)
             {
-                Console.WriteLine($"{player.Name}: credits {player.Credits}, pos ({player.X},{player.Y})");
+                int shipyards = CountShipyards(state, player);
+                int asteroidLevel = SumAsteroidMineLevels(state, player);
+                Console.WriteLine($"{player.Name}: credits {player.Credits}, pos ({player.X},{player.Y}), owned {player.OwnedFieldIds.Count}, shipyards {shipyards}, asteroid lvl {asteroidLevel}");
             }
+        }
+
+        private void UpdateSystemOwnership(GameState state, int? systemId)
+        {
+            if (systemId == null)
+            {
+                return;
+            }
+
+            var system = FindSystem(state, systemId);
+            if (system == null)
+            {
+                return;
+            }
+
+            int? ownerId = null;
+            foreach (var planetId in system.PlanetFieldIds)
+            {
+                var planet = FindPlanetById(state, planetId);
+                if (planet == null || planet.OwnerId == null)
+                {
+                    ownerId = null;
+                    break;
+                }
+
+                if (ownerId == null)
+                {
+                    ownerId = planet.OwnerId;
+                }
+                else if (ownerId != planet.OwnerId)
+                {
+                    ownerId = null;
+                    break;
+                }
+            }
+
+            system.OwnerId = ownerId;
+        }
+
+        private PlanetarySystem? FindSystem(GameState state, int? systemId)
+        {
+            if (systemId == null)
+            {
+                return null;
+            }
+
+            foreach (var system in state.World.Systems)
+            {
+                if (system.Id == systemId)
+                {
+                    return system;
+                }
+            }
+
+            return null;
+        }
+
+        private Planet? FindPlanetById(GameState state, int planetId)
+        {
+            foreach (var pos in state.World.Track)
+            {
+                var field = state.World.Board.GetField(pos.X, pos.Y);
+                if (field is Planet planet && planet.Id == planetId)
+                {
+                    return planet;
+                }
+            }
+
+            return null;
+        }
+
+        private int CountShipyards(GameState state, Player player)
+        {
+            int count = 0;
+            foreach (var system in state.World.Systems)
+            {
+                if (system.OwnerId == player.Id && system.HasShipyard)
+                {
+                    count++;
+                }
+            }
+
+            return count;
+        }
+
+        private int SumAsteroidMineLevels(GameState state, Player player)
+        {
+            int sum = 0;
+            foreach (var system in state.World.Systems)
+            {
+                if (system.OwnerId == player.Id)
+                {
+                    sum += system.AsteroidMineLevel;
+                }
+            }
+
+            return sum;
         }
     }
 }
