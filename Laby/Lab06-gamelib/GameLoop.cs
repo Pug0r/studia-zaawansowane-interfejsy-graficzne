@@ -271,15 +271,15 @@ namespace Lab06_gamelib
                     int? input = AskChoice("Choose upgrade: 1-settlement, 2-mine, 3-farm, 4-shipyard, 5-asteroid mine", 1, 5, true);
                     if (input == 1)
                     {
-                        TryUpgradeSettlement(player, planet, settings);
+                        TryUpgradePlanetLevel(player, planet, settings.SettlementUpgradeCosts, p => p.SettlementLevel, (p, level) => p.SettlementLevel = level, "settlement");
                     }
                     else if (input == 2)
                     {
-                        TryUpgradeMine(player, planet, settings);
+                        TryUpgradePlanetLevel(player, planet, settings.MineUpgradeCosts, p => p.MineLevel, (p, level) => p.MineLevel = level, "mine");
                     }
                     else if (input == 3)
                     {
-                        TryUpgradeFarm(player, planet, settings);
+                        TryUpgradePlanetLevel(player, planet, settings.FarmUpgradeCosts, p => p.FarmLevel, (p, level) => p.FarmLevel = level, "farm");
                     }
                     else if (input == 4)
                     {
@@ -296,9 +296,9 @@ namespace Lab06_gamelib
                     {
                         () => TryBuildShipyard(player, system, settings),
                         () => TryUpgradeAsteroidMine(player, system, settings),
-                        () => TryUpgradeSettlement(player, planet, settings),
-                        () => TryUpgradeMine(player, planet, settings),
-                        () => TryUpgradeFarm(player, planet, settings)
+                        () => TryUpgradePlanetLevel(player, planet, settings.SettlementUpgradeCosts, p => p.SettlementLevel, (p, level) => p.SettlementLevel = level, "settlement"),
+                        () => TryUpgradePlanetLevel(player, planet, settings.MineUpgradeCosts, p => p.MineLevel, (p, level) => p.MineLevel = level, "mine"),
+                        () => TryUpgradePlanetLevel(player, planet, settings.FarmUpgradeCosts, p => p.FarmLevel, (p, level) => p.FarmLevel = level, "farm")
                     };
                     int index = dice.Roll(0, options.Count - 1);
                     options[index]();
@@ -312,27 +312,46 @@ namespace Lab06_gamelib
                 int? input = AskChoice("Choose upgrade: 1-settlement, 2-mine, 3-farm", 1, 3, true);
                 if (input == 1)
                 {
-                    TryUpgradeSettlement(player, planet, settings);
+                    TryUpgradePlanetLevel(player, planet, settings.SettlementUpgradeCosts, p => p.SettlementLevel, (p, level) => p.SettlementLevel = level, "settlement");
                 }
                 else if (input == 2)
                 {
-                    TryUpgradeMine(player, planet, settings);
+                    TryUpgradePlanetLevel(player, planet, settings.MineUpgradeCosts, p => p.MineLevel, (p, level) => p.MineLevel = level, "mine");
                 }
                 else if (input == 3)
                 {
-                    TryUpgradeFarm(player, planet, settings);
+                    TryUpgradePlanetLevel(player, planet, settings.FarmUpgradeCosts, p => p.FarmLevel, (p, level) => p.FarmLevel = level, "farm");
                 }
             }
             else
             {
-                if (!TryUpgradeSettlement(player, planet, settings))
+                if (!TryUpgradePlanetLevel(player, planet, settings.SettlementUpgradeCosts, p => p.SettlementLevel, (p, level) => p.SettlementLevel = level, "settlement")
+                    && !TryUpgradePlanetLevel(player, planet, settings.MineUpgradeCosts, p => p.MineLevel, (p, level) => p.MineLevel = level, "mine"))
                 {
-                    if (!TryUpgradeMine(player, planet, settings))
-                    {
-                        TryUpgradeFarm(player, planet, settings);
-                    }
+                    TryUpgradePlanetLevel(player, planet, settings.FarmUpgradeCosts, p => p.FarmLevel, (p, level) => p.FarmLevel = level, "farm");
                 }
             }
+        }
+
+        private bool TryUpgradePlanetLevel(Player player, Planet planet, List<int> costs, Func<Planet, int> getLevel, Action<Planet, int> setLevel, string label)
+        {
+            int level = getLevel(planet);
+            if (level >= costs.Count)
+            {
+                return false;
+            }
+
+            int cost = costs[level];
+            if (player.Credits < cost)
+            {
+                return false;
+            }
+
+            player.Credits -= cost;
+            int newLevel = level + 1;
+            setLevel(planet, newLevel);
+            Console.WriteLine($"{player.Name} upgraded {label} to {newLevel}.");
+            return true;
         }
 
         private bool TryBuildShipyard(Player player, PlanetarySystem system, GameSettings settings)
@@ -369,63 +388,6 @@ namespace Lab06_gamelib
             player.Credits -= cost;
             system.AsteroidMineLevel++;
             Console.WriteLine($"{player.Name} upgraded asteroid mine to {system.AsteroidMineLevel} in {system.Name}.");
-            return true;
-        }
-
-        private bool TryUpgradeSettlement(Player player, Planet planet, GameSettings settings)
-        {
-            if (planet.SettlementLevel >= settings.SettlementUpgradeCosts.Count)
-            {
-                return false;
-            }
-
-            int cost = settings.SettlementUpgradeCosts[planet.SettlementLevel];
-            if (player.Credits < cost)
-            {
-                return false;
-            }
-
-            player.Credits -= cost;
-            planet.SettlementLevel++;
-            Console.WriteLine($"{player.Name} upgraded settlement to {planet.SettlementLevel}.");
-            return true;
-        }
-
-        private bool TryUpgradeMine(Player player, Planet planet, GameSettings settings)
-        {
-            if (planet.MineLevel >= settings.MineUpgradeCosts.Count)
-            {
-                return false;
-            }
-
-            int cost = settings.MineUpgradeCosts[planet.MineLevel];
-            if (player.Credits < cost)
-            {
-                return false;
-            }
-
-            player.Credits -= cost;
-            planet.MineLevel++;
-            Console.WriteLine($"{player.Name} upgraded mine to {planet.MineLevel}.");
-            return true;
-        }
-
-        private bool TryUpgradeFarm(Player player, Planet planet, GameSettings settings)
-        {
-            if (planet.FarmLevel >= settings.FarmUpgradeCosts.Count)
-            {
-                return false;
-            }
-
-            int cost = settings.FarmUpgradeCosts[planet.FarmLevel];
-            if (player.Credits < cost)
-            {
-                return false;
-            }
-
-            player.Credits -= cost;
-            planet.FarmLevel++;
-            Console.WriteLine($"{player.Name} upgraded farm to {planet.FarmLevel}.");
             return true;
         }
 
