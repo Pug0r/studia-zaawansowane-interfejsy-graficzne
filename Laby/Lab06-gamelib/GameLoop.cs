@@ -63,7 +63,7 @@ namespace Lab06_gamelib
             if (player.IsHuman && player.ConsecutiveSkips < 2)
             {
                 Console.WriteLine($"{player.Name} credits: {player.Credits}");
-                if (GameWorldQueries.AskChoice("Choose action: 1-roll, 2-skip", 1, 2, true) == 2)
+                if (ConsolePrompts.AskChoice(ConsolePrompts.TurnAction, 1, 2, true) == 2)
                 {
                     player.ConsecutiveSkips++;
                     Console.WriteLine($"{player.Name} skips by choice.");
@@ -130,7 +130,7 @@ namespace Lab06_gamelib
                     Console.WriteLine($"{i}: ({pos.X},{pos.Y})");
                 }
             }
-            int? index = player.IsHuman ? GameWorldQueries.AskChoice("Rail stop index", 0, state.World.RailStops.Count - 1, true) : 0;
+            int? index = player.IsHuman ? ConsolePrompts.AskChoice(ConsolePrompts.RailStopIndex, 0, state.World.RailStops.Count - 1, true) : 0;
             if (index != null)
             {
                 var pos = state.World.RailStops[index.Value];
@@ -207,7 +207,7 @@ namespace Lab06_gamelib
         {
             if (player.HasPirateDefenseCard)
             {
-                bool useCard = player.IsHuman ? GameWorldQueries.AskChoice("Use pirate defense card? 1-yes 2-no", 1, 2, false) == 1 : true;
+                bool useCard = player.IsHuman ? ConsolePrompts.AskChoice(ConsolePrompts.UsePirateDefense, 1, 2, false) == 1 : true;
                 if (useCard)
                 {
                     player.HasPirateDefenseCard = false;
@@ -218,7 +218,7 @@ namespace Lab06_gamelib
 
             if (player.Credits >= settings.PirateRansomCost)
             {
-                bool pay = player.IsHuman ? GameWorldQueries.AskChoice($"Pay ransom {settings.PirateRansomCost}? 1-yes 2-no", 1, 2, false) == 1 : true;
+                bool pay = player.IsHuman ? ConsolePrompts.AskChoice(ConsolePrompts.PayRansom(settings.PirateRansomCost), 1, 2, false) == 1 : true;
                 if (pay)
                 {
                     player.Credits -= settings.PirateRansomCost;
@@ -237,7 +237,7 @@ namespace Lab06_gamelib
             {
                 if (player.Credits >= settings.PortCost)
                 {
-                    bool buy = player.IsHuman ? GameWorldQueries.AskChoice("Build port? 1-yes 2-no", 1, 2, false) == 1 : true;
+                    bool buy = player.IsHuman ? ConsolePrompts.AskChoice(ConsolePrompts.BuildPort, 1, 2, false) == 1 : true;
                     if (buy)
                     {
                         player.Credits -= settings.PortCost;
@@ -261,7 +261,7 @@ namespace Lab06_gamelib
             {
                 if (player.IsHuman)
                 {
-                    int? input = GameWorldQueries.AskChoice("Choose upgrade: 1-settlement, 2-mine, 3-farm, 4-shipyard, 5-asteroid mine", 1, 5, true);
+                    int? input = ConsolePrompts.AskChoice(ConsolePrompts.UpgradeWithSystem, 1, 5, true);
                     switch (input)
                     {
                         case 1:
@@ -300,7 +300,7 @@ namespace Lab06_gamelib
 
             if (player.IsHuman)
             {
-                int? input = GameWorldQueries.AskChoice("Choose upgrade: 1-settlement, 2-mine, 3-farm", 1, 3, true);
+                int? input = ConsolePrompts.AskChoice(ConsolePrompts.UpgradeBasic, 1, 3, true);
                 switch (input)
                 {
                     case 1:
