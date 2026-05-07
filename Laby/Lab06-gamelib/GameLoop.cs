@@ -25,9 +25,9 @@ namespace Lab06_gamelib
                     ExecuteTurn(state, player, settings);
                 }
 
-                ApplyIncomeIfDue(state, settings);
+                GameEconomy.ApplyIncomeIfDue(state, settings);
 
-                PrintRoundSummary(state);
+                GameWorldQueries.PrintRoundSummary(state);
             }
 
             return state;
@@ -63,7 +63,7 @@ namespace Lab06_gamelib
             if (player.IsHuman && player.ConsecutiveSkips < 2)
             {
                 Console.WriteLine($"{player.Name} credits: {player.Credits}");
-                if (AskChoice("Choose action: 1-roll, 2-skip", 1, 2, true) == 2)
+                if (GameWorldQueries.AskChoice("Choose action: 1-roll, 2-skip", 1, 2, true) == 2)
                 {
                     player.ConsecutiveSkips++;
                     Console.WriteLine($"{player.Name} skips by choice.");
@@ -97,27 +97,20 @@ namespace Lab06_gamelib
 
         private void ResolveField(GameState state, Player player, Field field, GameSettings settings)
         {
-            if (field.Kind == FieldKind.PirateAttack)
+            switch (field)
             {
-                ResolvePirateEncounter(player, settings);
-                return;
-            }
-
-            if (field.Kind == FieldKind.RailStop)
-            {
-                HandleRailStop(state, player);
-                return;
-            }
-
-            if (field.Kind == FieldKind.Singularity)
-            {
-                HandleSingularity(state, player, settings);
-                return;
-            }
-
-            if (field is Planet planet)
-            {
-                HandlePlanet(state, player, planet, settings);
+                case { Kind: FieldKind.PirateAttack }:
+                    ResolvePirateEncounter(player, settings);
+                    return;
+                case { Kind: FieldKind.RailStop }:
+                    HandleRailStop(state, player);
+                    return;
+                case { Kind: FieldKind.Singularity }:
+                    HandleSingularity(state, player, settings);
+                    return;
+                case Planet planet:
+                    HandlePlanet(state, player, planet, settings);
+                    return;
             }
         }
 
@@ -137,7 +130,7 @@ namespace Lab06_gamelib
                     Console.WriteLine($"{i}: ({pos.X},{pos.Y})");
                 }
             }
-            int? index = player.IsHuman ? AskChoice("Rail stop index", 0, state.World.RailStops.Count - 1, true) : 0;
+            int? index = player.IsHuman ? GameWorldQueries.AskChoice("Rail stop index", 0, state.World.RailStops.Count - 1, true) : 0;
             if (index != null)
             {
                 var pos = state.World.RailStops[index.Value];
@@ -167,7 +160,7 @@ namespace Lab06_gamelib
                     Console.WriteLine($"{player.Name} received galactic ticket.");
                     break;
                 case SingularityCardKind.Tax:
-                    int value = CalculatePropertyValue(state, player, settings);
+                    int value = GameEconomy.CalculatePropertyValue(state, player, settings);
                     int tax = value * settings.TaxRatePercent / 100;
                     int paid = Math.Min(player.Credits, tax);
                     player.Credits -= paid;
@@ -184,7 +177,7 @@ namespace Lab06_gamelib
                     Console.WriteLine($"{player.Name} had engine failure and paid {failurePaid}.");
                     break;
                 case SingularityCardKind.ShipyardFailure:
-                    HandleShipyardFailure(state, player, settings);
+                    GameWorldQueries.HandleShipyardFailure(state, player, settings);
                     break;
             }
         }
@@ -201,7 +194,7 @@ namespace Lab06_gamelib
                 SingularityCardKind.EngineFailure
             };
 
-            if (PlayerHasShipyard(state, player))
+            if (GameWorldQueries.PlayerHasShipyard(state, player))
             {
                 cards.Add(SingularityCardKind.ShipyardFailure);
             }
@@ -214,7 +207,7 @@ namespace Lab06_gamelib
         {
             if (player.HasPirateDefenseCard)
             {
-                bool useCard = player.IsHuman ? AskChoice("Use pirate defense card? 1-yes 2-no", 1, 2, false) == 1 : true;
+                bool useCard = player.IsHuman ? GameWorldQueries.AskChoice("Use pirate defense card? 1-yes 2-no", 1, 2, false) == 1 : true;
                 if (useCard)
                 {
                     player.HasPirateDefenseCard = false;
@@ -225,7 +218,7 @@ namespace Lab06_gamelib
 
             if (player.Credits >= settings.PirateRansomCost)
             {
-                bool pay = player.IsHuman ? AskChoice($"Pay ransom {settings.PirateRansomCost}? 1-yes 2-no", 1, 2, false) == 1 : true;
+                bool pay = player.IsHuman ? GameWorldQueries.AskChoice($"Pay ransom {settings.PirateRansomCost}? 1-yes 2-no", 1, 2, false) == 1 : true;
                 if (pay)
                 {
                     player.Credits -= settings.PirateRansomCost;
@@ -244,7 +237,7 @@ namespace Lab06_gamelib
             {
                 if (player.Credits >= settings.PortCost)
                 {
-                    bool buy = player.IsHuman ? AskChoice("Build port? 1-yes 2-no", 1, 2, false) == 1 : true;
+                    bool buy = player.IsHuman ? GameWorldQueries.AskChoice("Build port? 1-yes 2-no", 1, 2, false) == 1 : true;
                     if (buy)
                     {
                         player.Credits -= settings.PortCost;
@@ -252,7 +245,7 @@ namespace Lab06_gamelib
                         planet.OwnerId = player.Id;
                         player.OwnedFieldIds.Add(planet.Id);
                         Console.WriteLine($"{player.Name} built a port on {planet.Name}.");
-                        UpdateSystemOwnership(state, planet.SystemId);
+                        GameWorldQueries.UpdateSystemOwnership(state, planet.SystemId);
                     }
                 }
                 return;
@@ -263,31 +256,29 @@ namespace Lab06_gamelib
                 return;
             }
 
-            var system = FindSystem(state, planet.SystemId);
+            var system = GameWorldQueries.FindSystem(state, planet.SystemId);
             if (system != null && system.OwnerId == player.Id)
             {
                 if (player.IsHuman)
                 {
-                    int? input = AskChoice("Choose upgrade: 1-settlement, 2-mine, 3-farm, 4-shipyard, 5-asteroid mine", 1, 5, true);
-                    if (input == 1)
+                    int? input = GameWorldQueries.AskChoice("Choose upgrade: 1-settlement, 2-mine, 3-farm, 4-shipyard, 5-asteroid mine", 1, 5, true);
+                    switch (input)
                     {
-                        TryUpgradePlanetLevel(player, planet, settings.SettlementUpgradeCosts, p => p.SettlementLevel, (p, level) => p.SettlementLevel = level, "settlement");
-                    }
-                    else if (input == 2)
-                    {
-                        TryUpgradePlanetLevel(player, planet, settings.MineUpgradeCosts, p => p.MineLevel, (p, level) => p.MineLevel = level, "mine");
-                    }
-                    else if (input == 3)
-                    {
-                        TryUpgradePlanetLevel(player, planet, settings.FarmUpgradeCosts, p => p.FarmLevel, (p, level) => p.FarmLevel = level, "farm");
-                    }
-                    else if (input == 4)
-                    {
-                        TryBuildShipyard(player, system, settings);
-                    }
-                    else if (input == 5)
-                    {
-                        TryUpgradeAsteroidMine(player, system, settings);
+                        case 1:
+                            TryUpgradePlanetLevel(player, planet, settings.SettlementUpgradeCosts, p => p.SettlementLevel, (p, level) => p.SettlementLevel = level, "settlement");
+                            break;
+                        case 2:
+                            TryUpgradePlanetLevel(player, planet, settings.MineUpgradeCosts, p => p.MineLevel, (p, level) => p.MineLevel = level, "mine");
+                            break;
+                        case 3:
+                            TryUpgradePlanetLevel(player, planet, settings.FarmUpgradeCosts, p => p.FarmLevel, (p, level) => p.FarmLevel = level, "farm");
+                            break;
+                        case 4:
+                            TryBuildShipyard(player, system, settings);
+                            break;
+                        case 5:
+                            TryUpgradeAsteroidMine(player, system, settings);
+                            break;
                     }
                 }
                 else
@@ -309,18 +300,18 @@ namespace Lab06_gamelib
 
             if (player.IsHuman)
             {
-                int? input = AskChoice("Choose upgrade: 1-settlement, 2-mine, 3-farm", 1, 3, true);
-                if (input == 1)
+                int? input = GameWorldQueries.AskChoice("Choose upgrade: 1-settlement, 2-mine, 3-farm", 1, 3, true);
+                switch (input)
                 {
-                    TryUpgradePlanetLevel(player, planet, settings.SettlementUpgradeCosts, p => p.SettlementLevel, (p, level) => p.SettlementLevel = level, "settlement");
-                }
-                else if (input == 2)
-                {
-                    TryUpgradePlanetLevel(player, planet, settings.MineUpgradeCosts, p => p.MineLevel, (p, level) => p.MineLevel = level, "mine");
-                }
-                else if (input == 3)
-                {
-                    TryUpgradePlanetLevel(player, planet, settings.FarmUpgradeCosts, p => p.FarmLevel, (p, level) => p.FarmLevel = level, "farm");
+                    case 1:
+                        TryUpgradePlanetLevel(player, planet, settings.SettlementUpgradeCosts, p => p.SettlementLevel, (p, level) => p.SettlementLevel = level, "settlement");
+                        break;
+                    case 2:
+                        TryUpgradePlanetLevel(player, planet, settings.MineUpgradeCosts, p => p.MineLevel, (p, level) => p.MineLevel = level, "mine");
+                        break;
+                    case 3:
+                        TryUpgradePlanetLevel(player, planet, settings.FarmUpgradeCosts, p => p.FarmLevel, (p, level) => p.FarmLevel = level, "farm");
+                        break;
                 }
             }
             else
@@ -389,296 +380,6 @@ namespace Lab06_gamelib
             system.AsteroidMineLevel++;
             Console.WriteLine($"{player.Name} upgraded asteroid mine to {system.AsteroidMineLevel} in {system.Name}.");
             return true;
-        }
-
-        private int? AskChoice(string prompt, int min, int max, bool allowEmpty)
-        {
-            while (true)
-            {
-                Console.Write($"{prompt}: ");
-                var input = Console.ReadLine();
-                if (string.IsNullOrWhiteSpace(input))
-                {
-                    return allowEmpty ? null : 0;
-                }
-
-                if (int.TryParse(input.Trim(), out int value) && value >= min && value <= max)
-                {
-                    return value;
-                }
-            }
-        }
-
-        private void ApplyIncomeIfDue(GameState state, GameSettings settings)
-        {
-            if (settings.IncomeCadence <= 0 || state.Round % settings.IncomeCadence != 0)
-            {
-                return;
-            }
-
-            foreach (var player in state.Players)
-            {
-                int income = CalculateIncome(state, player, settings);
-                player.Credits += income;
-                Console.WriteLine($"{player.Name} received income {income}.");
-            }
-        }
-
-        private int CalculateIncome(GameState state, Player player, GameSettings settings)
-        {
-            int income = 0;
-
-            foreach (var planet in GetPlanets(state))
-            {
-                if (planet.OwnerId != player.Id)
-                {
-                    continue;
-                }
-
-                if (planet.HasPort)
-                {
-                    income += settings.IncomePerPort;
-                }
-
-                income += planet.SettlementLevel * settings.IncomePerSettlementLevel;
-                income += planet.MineLevel * settings.IncomePerMineLevel;
-                income += planet.FarmLevel * settings.IncomePerFarmLevel;
-            }
-
-            foreach (var system in state.World.Systems)
-            {
-                if (system.OwnerId != player.Id)
-                {
-                    continue;
-                }
-
-                if (system.HasShipyard)
-                {
-                    income += settings.IncomePerShipyard;
-                }
-
-                income += system.AsteroidMineLevel * settings.IncomePerAsteroidMineLevel;
-            }
-
-            return income;
-        }
-
-        private int CalculatePropertyValue(GameState state, Player player, GameSettings settings)
-        {
-            int value = 0;
-
-            foreach (var planet in GetPlanets(state))
-            {
-                if (planet.OwnerId != player.Id)
-                {
-                    continue;
-                }
-
-                if (planet.HasPort)
-                {
-                    value += settings.PortCost;
-                }
-
-                value += SumUpgradeCosts(settings.SettlementUpgradeCosts, planet.SettlementLevel);
-                value += SumUpgradeCosts(settings.MineUpgradeCosts, planet.MineLevel);
-                value += SumUpgradeCosts(settings.FarmUpgradeCosts, planet.FarmLevel);
-            }
-
-            foreach (var system in state.World.Systems)
-            {
-                if (system.OwnerId != player.Id)
-                {
-                    continue;
-                }
-
-                if (system.HasShipyard)
-                {
-                    value += settings.ShipyardCost;
-                }
-
-                value += SumUpgradeCosts(settings.AsteroidMineUpgradeCosts, system.AsteroidMineLevel);
-            }
-
-            return value;
-        }
-
-        private int SumUpgradeCosts(List<int> costs, int level)
-        {
-            int sum = 0;
-            int cappedLevel = Math.Min(level, costs.Count);
-            for (int i = 0; i < cappedLevel; i++)
-            {
-                sum += costs[i];
-            }
-
-            return sum;
-        }
-
-        private List<Planet> GetPlanets(GameState state)
-        {
-            var planets = new List<Planet>();
-            foreach (var pos in state.World.Track)
-            {
-                var field = state.World.Board.GetField(pos.X, pos.Y);
-                if (field is Planet planet)
-                {
-                    planets.Add(planet);
-                }
-            }
-
-            return planets;
-        }
-
-        private bool PlayerHasShipyard(GameState state, Player player)
-        {
-            foreach (var system in state.World.Systems)
-            {
-                if (system.OwnerId == player.Id && system.HasShipyard)
-                {
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
-        private void HandleShipyardFailure(GameState state, Player player, GameSettings settings)
-        {
-            var system = FindFirstOwnedShipyard(state, player);
-            if (system == null)
-            {
-                return;
-            }
-
-            if (player.Credits >= settings.ShipyardFailureCost)
-            {
-                player.Credits -= settings.ShipyardFailureCost;
-                Console.WriteLine($"{player.Name} paid shipyard repair {settings.ShipyardFailureCost}.");
-                return;
-            }
-
-            system.HasShipyard = false;
-            Console.WriteLine($"{player.Name} lost a shipyard in {system.Name}.");
-        }
-
-        private PlanetarySystem? FindFirstOwnedShipyard(GameState state, Player player)
-        {
-            foreach (var system in state.World.Systems)
-            {
-                if (system.OwnerId == player.Id && system.HasShipyard)
-                {
-                    return system;
-                }
-            }
-
-            return null;
-        }
-
-        private void PrintRoundSummary(GameState state)
-        {
-            foreach (var player in state.Players)
-            {
-                int shipyards = CountShipyards(state, player);
-                int asteroidLevel = SumAsteroidMineLevels(state, player);
-                Console.WriteLine($"{player.Name}: credits {player.Credits}, pos ({player.X},{player.Y}), owned {player.OwnedFieldIds.Count}, shipyards {shipyards}, asteroid lvl {asteroidLevel}");
-            }
-        }
-
-        private void UpdateSystemOwnership(GameState state, int? systemId)
-        {
-            if (systemId == null)
-            {
-                return;
-            }
-
-            var system = FindSystem(state, systemId);
-            if (system == null)
-            {
-                return;
-            }
-
-            int? ownerId = null;
-            foreach (var planetId in system.PlanetFieldIds)
-            {
-                var planet = FindPlanetById(state, planetId);
-                if (planet == null || planet.OwnerId == null)
-                {
-                    ownerId = null;
-                    break;
-                }
-
-                if (ownerId == null)
-                {
-                    ownerId = planet.OwnerId;
-                }
-                else if (ownerId != planet.OwnerId)
-                {
-                    ownerId = null;
-                    break;
-                }
-            }
-
-            system.OwnerId = ownerId;
-        }
-
-        private PlanetarySystem? FindSystem(GameState state, int? systemId)
-        {
-            if (systemId == null)
-            {
-                return null;
-            }
-
-            foreach (var system in state.World.Systems)
-            {
-                if (system.Id == systemId)
-                {
-                    return system;
-                }
-            }
-
-            return null;
-        }
-
-        private Planet? FindPlanetById(GameState state, int planetId)
-        {
-            foreach (var pos in state.World.Track)
-            {
-                var field = state.World.Board.GetField(pos.X, pos.Y);
-                if (field is Planet planet && planet.Id == planetId)
-                {
-                    return planet;
-                }
-            }
-
-            return null;
-        }
-
-        private int CountShipyards(GameState state, Player player)
-        {
-            int count = 0;
-            foreach (var system in state.World.Systems)
-            {
-                if (system.OwnerId == player.Id && system.HasShipyard)
-                {
-                    count++;
-                }
-            }
-
-            return count;
-        }
-
-        private int SumAsteroidMineLevels(GameState state, Player player)
-        {
-            int sum = 0;
-            foreach (var system in state.World.Systems)
-            {
-                if (system.OwnerId == player.Id)
-                {
-                    sum += system.AsteroidMineLevel;
-                }
-            }
-
-            return sum;
         }
     }
 }
