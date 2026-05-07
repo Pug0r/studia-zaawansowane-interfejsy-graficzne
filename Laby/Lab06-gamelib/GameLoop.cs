@@ -25,6 +25,8 @@ namespace Lab06_gamelib
                     ExecuteTurn(state, player, settings);
                 }
 
+                ApplyIncomeIfDue(state, settings);
+
                 PrintRoundSummary(state);
             }
 
@@ -99,8 +101,7 @@ namespace Lab06_gamelib
         {
             if (field.Kind == FieldKind.PirateAttack)
             {
-                player.TurnsToSkip += settings.PirateTurnsLost;
-                Console.WriteLine($"{player.Name} hit pirate attack and loses {settings.PirateTurnsLost} turns.");
+                ResolvePirateEncounter(player, settings);
                 return;
             }
 
@@ -112,7 +113,7 @@ namespace Lab06_gamelib
 
             if (field.Kind == FieldKind.Singularity)
             {
-                Console.WriteLine("Singularity encountered.");
+                HandleSingularity(state, player, settings);
                 return;
             }
 
@@ -157,6 +158,112 @@ namespace Lab06_gamelib
                 player.TrackIndex = state.World.Track.FindIndex(p => p.X == pos.X && p.Y == pos.Y);
                 player.GalacticTickets--;
             }
+        }
+
+        private void HandleSingularity(GameState state, Player player, GameSettings settings)
+        {
+            var card = DrawSingularityCard(state, player);
+            Console.WriteLine($"Singularity card: {card}");
+
+            if (card == SingularityCardKind.PirateAttack)
+            {
+                ResolvePirateEncounter(player, settings);
+                return;
+            }
+
+            if (card == SingularityCardKind.PirateDefense)
+            {
+                player.HasPirateDefenseCard = true;
+                Console.WriteLine($"{player.Name} received pirate defense card.");
+                return;
+            }
+
+            if (card == SingularityCardKind.GalacticTicket)
+            {
+                player.GalacticTickets++;
+                Console.WriteLine($"{player.Name} received galactic ticket.");
+                return;
+            }
+
+            if (card == SingularityCardKind.Tax)
+            {
+                int value = CalculatePropertyValue(state, player, settings);
+                int tax = value * settings.TaxRatePercent / 100;
+                int paid = Math.Min(player.Credits, tax);
+                player.Credits -= paid;
+                Console.WriteLine($"{player.Name} paid tax {paid}.");
+                return;
+            }
+
+            if (card == SingularityCardKind.Lottery)
+            {
+                player.Credits += settings.LotteryReward;
+                Console.WriteLine($"{player.Name} won lottery {settings.LotteryReward}.");
+                return;
+            }
+
+            if (card == SingularityCardKind.EngineFailure)
+            {
+                player.TurnsToSkip += settings.EngineFailureTurnsLost;
+                int paid = Math.Min(player.Credits, settings.EngineFailureTowCost);
+                player.Credits -= paid;
+                Console.WriteLine($"{player.Name} had engine failure and paid {paid}.");
+                return;
+            }
+
+            if (card == SingularityCardKind.ShipyardFailure)
+            {
+                HandleShipyardFailure(state, player, settings);
+            }
+        }
+
+        private SingularityCardKind DrawSingularityCard(GameState state, Player player)
+        {
+            var cards = new List<SingularityCardKind>
+            {
+                SingularityCardKind.PirateAttack,
+                SingularityCardKind.PirateDefense,
+                SingularityCardKind.GalacticTicket,
+                SingularityCardKind.Tax,
+                SingularityCardKind.Lottery,
+                SingularityCardKind.EngineFailure
+            };
+
+            if (PlayerHasShipyard(state, player))
+            {
+                cards.Add(SingularityCardKind.ShipyardFailure);
+            }
+
+            int index = dice.Roll(0, cards.Count - 1);
+            return cards[index];
+        }
+
+        private void ResolvePirateEncounter(Player player, GameSettings settings)
+        {
+            if (player.HasPirateDefenseCard)
+            {
+                bool useCard = player.IsHuman ? AskYesNo("Use pirate defense card?") : true;
+                if (useCard)
+                {
+                    player.HasPirateDefenseCard = false;
+                    Console.WriteLine($"{player.Name} blocked pirates with defense card.");
+                    return;
+                }
+            }
+
+            if (player.Credits >= settings.PirateRansomCost)
+            {
+                bool pay = player.IsHuman ? AskYesNo($"Pay ransom {settings.PirateRansomCost}?") : true;
+                if (pay)
+                {
+                    player.Credits -= settings.PirateRansomCost;
+                    Console.WriteLine($"{player.Name} paid ransom.");
+                    return;
+                }
+            }
+
+            player.TurnsToSkip += settings.PirateTurnsLost;
+            Console.WriteLine($"{player.Name} loses {settings.PirateTurnsLost} turns.");
         }
 
         private void HandlePlanet(GameState state, Player player, Planet planet, GameSettings settings)
@@ -282,6 +389,176 @@ namespace Lab06_gamelib
             Console.Write($"{prompt} (y/n): ");
             var input = Console.ReadLine();
             return input != null && input.Trim().Equals("y", StringComparison.OrdinalIgnoreCase);
+        }
+
+        private void ApplyIncomeIfDue(GameState state, GameSettings settings)
+        {
+            if (settings.IncomeCadence <= 0)
+            {
+                return;
+            }
+
+            if (state.Round % settings.IncomeCadence != 0)
+            {
+                return;
+            }
+
+            foreach (var player in state.Players)
+            {
+                int income = CalculateIncome(state, player, settings);
+                player.Credits += income;
+                Console.WriteLine($"{player.Name} received income {income}.");
+            }
+        }
+
+        private int CalculateIncome(GameState state, Player player, GameSettings settings)
+        {
+            int income = 0;
+
+            foreach (var planet in GetPlanets(state))
+            {
+                if (planet.OwnerId != player.Id)
+                {
+                    continue;
+                }
+
+                if (planet.HasPort)
+                {
+                    income += settings.IncomePerPort;
+                }
+
+                income += planet.SettlementLevel * settings.IncomePerSettlementLevel;
+                income += planet.MineLevel * settings.IncomePerMineLevel;
+                income += planet.FarmLevel * settings.IncomePerFarmLevel;
+            }
+
+            foreach (var system in state.World.Systems)
+            {
+                if (system.OwnerId != player.Id)
+                {
+                    continue;
+                }
+
+                if (system.HasShipyard)
+                {
+                    income += settings.IncomePerShipyard;
+                }
+
+                income += system.AsteroidMineLevel * settings.IncomePerAsteroidMineLevel;
+            }
+
+            return income;
+        }
+
+        private int CalculatePropertyValue(GameState state, Player player, GameSettings settings)
+        {
+            int value = 0;
+
+            foreach (var planet in GetPlanets(state))
+            {
+                if (planet.OwnerId != player.Id)
+                {
+                    continue;
+                }
+
+                if (planet.HasPort)
+                {
+                    value += settings.PortCost;
+                }
+
+                value += SumUpgradeCosts(settings.SettlementUpgradeCosts, planet.SettlementLevel);
+                value += SumUpgradeCosts(settings.MineUpgradeCosts, planet.MineLevel);
+                value += SumUpgradeCosts(settings.FarmUpgradeCosts, planet.FarmLevel);
+            }
+
+            foreach (var system in state.World.Systems)
+            {
+                if (system.OwnerId != player.Id)
+                {
+                    continue;
+                }
+
+                if (system.HasShipyard)
+                {
+                    value += settings.ShipyardCost;
+                }
+
+                value += SumUpgradeCosts(settings.AsteroidMineUpgradeCosts, system.AsteroidMineLevel);
+            }
+
+            return value;
+        }
+
+        private int SumUpgradeCosts(List<int> costs, int level)
+        {
+            int sum = 0;
+            int cappedLevel = Math.Min(level, costs.Count);
+            for (int i = 0; i < cappedLevel; i++)
+            {
+                sum += costs[i];
+            }
+
+            return sum;
+        }
+
+        private List<Planet> GetPlanets(GameState state)
+        {
+            var planets = new List<Planet>();
+            foreach (var pos in state.World.Track)
+            {
+                var field = state.World.Board.GetField(pos.X, pos.Y);
+                if (field is Planet planet)
+                {
+                    planets.Add(planet);
+                }
+            }
+
+            return planets;
+        }
+
+        private bool PlayerHasShipyard(GameState state, Player player)
+        {
+            foreach (var system in state.World.Systems)
+            {
+                if (system.OwnerId == player.Id && system.HasShipyard)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private void HandleShipyardFailure(GameState state, Player player, GameSettings settings)
+        {
+            var system = FindFirstOwnedShipyard(state, player);
+            if (system == null)
+            {
+                return;
+            }
+
+            if (player.Credits >= settings.ShipyardFailureCost)
+            {
+                player.Credits -= settings.ShipyardFailureCost;
+                Console.WriteLine($"{player.Name} paid shipyard repair {settings.ShipyardFailureCost}.");
+                return;
+            }
+
+            system.HasShipyard = false;
+            Console.WriteLine($"{player.Name} lost a shipyard in {system.Name}.");
+        }
+
+        private PlanetarySystem? FindFirstOwnedShipyard(GameState state, Player player)
+        {
+            foreach (var system in state.World.Systems)
+            {
+                if (system.OwnerId == player.Id && system.HasShipyard)
+                {
+                    return system;
+                }
+            }
+
+            return null;
         }
 
         private void PrintRoundSummary(GameState state)
