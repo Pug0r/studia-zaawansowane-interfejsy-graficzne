@@ -10,18 +10,20 @@ namespace Lab06_gamelib.Services
     public class SettingsProvider
     {
         private readonly GameSettings _settings;
-        private const string SettingsPath = "settings.json";
+        private const string SettingsFileName = "settings.json";
 
         public GameSettings Settings => _settings;
 
         public SettingsProvider()
         {
-            if (!File.Exists(SettingsPath))
+            var basePath = AppContext.BaseDirectory;
+            var settingsPath = Path.Combine(basePath, SettingsFileName);
+            if (!File.Exists(settingsPath))
             {
-                throw new FileNotFoundException($"Critical Error: {SettingsPath} not found!");
+                throw new FileNotFoundException($"Critical Error: {SettingsFileName} not found!");
             }
 
-            string json = File.ReadAllText(SettingsPath);
+            string json = File.ReadAllText(settingsPath);
             _settings = JsonSerializer.Deserialize<GameSettings>(json)
                         ?? throw new Exception("Failed to parse settings.json");
         }

@@ -1,12 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace Lab06_gamelib.Models
+﻿namespace Lab06_gamelib.Models
 {
-    public class Planet: Field
+    public class Planet : Field
     {
-        public Planet(int radius, int id, string name, int richness)
-                : base(id, radius, name) { }
+        public int Richness { get; private set; }
+        public bool HasPort { get; set; }
+        public int SettlementLevel { get; set; }
+        public int MineLevel { get; set; }
+        public int FarmLevel { get; set; }
+
+        public Planet(int radius, int id, string name, int richness, int systemId)
+            : base(radius, id, name, FieldKind.Planet, systemId)
+        {
+            Richness = richness;
+        }
     }
 }
