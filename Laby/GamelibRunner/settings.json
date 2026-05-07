@@ -1,6 +1,6 @@
 {
-  "StartingCredits": 5000,
-  "RoundLimit": 10,
+  "StartingCredits": 3000,
+  "RoundLimit": 50,
   "IncomeCadence": 3,
   "IncomePerPort": 50,
   "IncomePerSettlementLevel": 40,
