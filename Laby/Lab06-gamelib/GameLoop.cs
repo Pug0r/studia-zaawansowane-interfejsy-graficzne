@@ -63,8 +63,7 @@ namespace Lab06_gamelib
             if (player.IsHuman && player.ConsecutiveSkips < 2)
             {
                 Console.WriteLine($"{player.Name} credits: {player.Credits}");
-                int? choice = AskChoice("Choose action: 1-roll, 2-skip", 1, 2, true);
-                if (choice == 2)
+                if (AskChoice("Choose action: 1-roll, 2-skip", 1, 2, true) == 2)
                 {
                     player.ConsecutiveSkips++;
                     Console.WriteLine($"{player.Name} skips by choice.");
@@ -137,24 +136,16 @@ namespace Lab06_gamelib
                     var pos = state.World.RailStops[i];
                     Console.WriteLine($"{i}: ({pos.X},{pos.Y})");
                 }
-                int? index = AskChoice("Rail stop index", 0, state.World.RailStops.Count - 1, true);
-                if (index != null)
-                {
-                    var pos = state.World.RailStops[index.Value];
-                    player.X = pos.X;
-                    player.Y = pos.Y;
-                    player.TrackIndex = state.World.Track.FindIndex(p => p.X == pos.X && p.Y == pos.Y);
-                    player.GalacticTickets--;
-                    Console.WriteLine($"{player.Name} moved by rail.");
-                }
             }
-            else
+            int? index = player.IsHuman ? AskChoice("Rail stop index", 0, state.World.RailStops.Count - 1, true) : 0;
+            if (index != null)
             {
-                var pos = state.World.RailStops[0];
+                var pos = state.World.RailStops[index.Value];
                 player.X = pos.X;
                 player.Y = pos.Y;
                 player.TrackIndex = state.World.Track.FindIndex(p => p.X == pos.X && p.Y == pos.Y);
                 player.GalacticTickets--;
+                Console.WriteLine($"{player.Name} moved by rail.");
             }
         }
 
@@ -162,56 +153,39 @@ namespace Lab06_gamelib
         {
             var card = DrawSingularityCard(state, player);
             Console.WriteLine($"Singularity card: {card}");
-
-            if (card == SingularityCardKind.PirateAttack)
+            switch (card)
             {
-                ResolvePirateEncounter(player, settings);
-                return;
-            }
-
-            if (card == SingularityCardKind.PirateDefense)
-            {
-                player.HasPirateDefenseCard = true;
-                Console.WriteLine($"{player.Name} received pirate defense card.");
-                return;
-            }
-
-            if (card == SingularityCardKind.GalacticTicket)
-            {
-                player.GalacticTickets++;
-                Console.WriteLine($"{player.Name} received galactic ticket.");
-                return;
-            }
-
-            if (card == SingularityCardKind.Tax)
-            {
-                int value = CalculatePropertyValue(state, player, settings);
-                int tax = value * settings.TaxRatePercent / 100;
-                int paid = Math.Min(player.Credits, tax);
-                player.Credits -= paid;
-                Console.WriteLine($"{player.Name} paid tax {paid}.");
-                return;
-            }
-
-            if (card == SingularityCardKind.Lottery)
-            {
-                player.Credits += settings.LotteryReward;
-                Console.WriteLine($"{player.Name} won lottery {settings.LotteryReward}.");
-                return;
-            }
-
-            if (card == SingularityCardKind.EngineFailure)
-            {
-                player.TurnsToSkip += settings.EngineFailureTurnsLost;
-                int paid = Math.Min(player.Credits, settings.EngineFailureTowCost);
-                player.Credits -= paid;
-                Console.WriteLine($"{player.Name} had engine failure and paid {paid}.");
-                return;
-            }
-
-            if (card == SingularityCardKind.ShipyardFailure)
-            {
-                HandleShipyardFailure(state, player, settings);
+                case SingularityCardKind.PirateAttack:
+                    ResolvePirateEncounter(player, settings);
+                    break;
+                case SingularityCardKind.PirateDefense:
+                    player.HasPirateDefenseCard = true;
+                    Console.WriteLine($"{player.Name} received pirate defense card.");
+                    break;
+                case SingularityCardKind.GalacticTicket:
+                    player.GalacticTickets++;
+                    Console.WriteLine($"{player.Name} received galactic ticket.");
+                    break;
+                case SingularityCardKind.Tax:
+                    int value = CalculatePropertyValue(state, player, settings);
+                    int tax = value * settings.TaxRatePercent / 100;
+                    int paid = Math.Min(player.Credits, tax);
+                    player.Credits -= paid;
+                    Console.WriteLine($"{player.Name} paid tax {paid}.");
+                    break;
+                case SingularityCardKind.Lottery:
+                    player.Credits += settings.LotteryReward;
+                    Console.WriteLine($"{player.Name} won lottery {settings.LotteryReward}.");
+                    break;
+                case SingularityCardKind.EngineFailure:
+                    player.TurnsToSkip += settings.EngineFailureTurnsLost;
+                    int failurePaid = Math.Min(player.Credits, settings.EngineFailureTowCost);
+                    player.Credits -= failurePaid;
+                    Console.WriteLine($"{player.Name} had engine failure and paid {failurePaid}.");
+                    break;
+                case SingularityCardKind.ShipyardFailure:
+                    HandleShipyardFailure(state, player, settings);
+                    break;
             }
         }
 
@@ -266,8 +240,6 @@ namespace Lab06_gamelib
 
         private void HandlePlanet(GameState state, Player player, Planet planet, GameSettings settings)
         {
-            bool actionUsed = false;
-
             if (!planet.HasPort)
             {
                 if (player.Credits >= settings.PortCost)
@@ -279,7 +251,6 @@ namespace Lab06_gamelib
                         planet.HasPort = true;
                         planet.OwnerId = player.Id;
                         player.OwnedFieldIds.Add(planet.Id);
-                        actionUsed = true;
                         Console.WriteLine($"{player.Name} built a port on {planet.Name}.");
                         UpdateSystemOwnership(state, planet.SystemId);
                     }
@@ -292,11 +263,6 @@ namespace Lab06_gamelib
                 return;
             }
 
-            if (actionUsed)
-            {
-                return;
-            }
-
             var system = FindSystem(state, planet.SystemId);
             if (system != null && system.OwnerId == player.Id)
             {
@@ -305,32 +271,37 @@ namespace Lab06_gamelib
                     int? input = AskChoice("Choose upgrade: 1-settlement, 2-mine, 3-farm, 4-shipyard, 5-asteroid mine", 1, 5, true);
                     if (input == 1)
                     {
-                        actionUsed = TryUpgradeSettlement(player, planet, settings);
+                        TryUpgradeSettlement(player, planet, settings);
                     }
                     else if (input == 2)
                     {
-                        actionUsed = TryUpgradeMine(player, planet, settings);
+                        TryUpgradeMine(player, planet, settings);
                     }
                     else if (input == 3)
                     {
-                        actionUsed = TryUpgradeFarm(player, planet, settings);
+                        TryUpgradeFarm(player, planet, settings);
                     }
                     else if (input == 4)
                     {
-                        actionUsed = TryBuildShipyard(player, system, settings);
+                        TryBuildShipyard(player, system, settings);
                     }
                     else if (input == 5)
                     {
-                        actionUsed = TryUpgradeAsteroidMine(player, system, settings);
+                        TryUpgradeAsteroidMine(player, system, settings);
                     }
                 }
                 else
                 {
-                    actionUsed = TryBuildShipyard(player, system, settings)
-                        || TryUpgradeAsteroidMine(player, system, settings)
-                        || TryUpgradeSettlement(player, planet, settings)
-                        || TryUpgradeMine(player, planet, settings)
-                        || TryUpgradeFarm(player, planet, settings);
+                    var options = new List<Func<bool>>
+                    {
+                        () => TryBuildShipyard(player, system, settings),
+                        () => TryUpgradeAsteroidMine(player, system, settings),
+                        () => TryUpgradeSettlement(player, planet, settings),
+                        () => TryUpgradeMine(player, planet, settings),
+                        () => TryUpgradeFarm(player, planet, settings)
+                    };
+                    int index = dice.Roll(0, options.Count - 1);
+                    options[index]();
                 }
 
                 return;
@@ -341,15 +312,15 @@ namespace Lab06_gamelib
                 int? input = AskChoice("Choose upgrade: 1-settlement, 2-mine, 3-farm", 1, 3, true);
                 if (input == 1)
                 {
-                    actionUsed = TryUpgradeSettlement(player, planet, settings);
+                    TryUpgradeSettlement(player, planet, settings);
                 }
                 else if (input == 2)
                 {
-                    actionUsed = TryUpgradeMine(player, planet, settings);
+                    TryUpgradeMine(player, planet, settings);
                 }
                 else if (input == 3)
                 {
-                    actionUsed = TryUpgradeFarm(player, planet, settings);
+                    TryUpgradeFarm(player, planet, settings);
                 }
             }
             else
@@ -478,12 +449,7 @@ namespace Lab06_gamelib
 
         private void ApplyIncomeIfDue(GameState state, GameSettings settings)
         {
-            if (settings.IncomeCadence <= 0)
-            {
-                return;
-            }
-
-            if (state.Round % settings.IncomeCadence != 0)
+            if (settings.IncomeCadence <= 0 || state.Round % settings.IncomeCadence != 0)
             {
                 return;
             }
