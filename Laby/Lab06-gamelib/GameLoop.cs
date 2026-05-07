@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 namespace Lab06_gamelib
 {
-    public class GameLoop(GameLog logger, BoardService boardService, DiceService dice, SettingsProvider settingsProvider)
+    public class GameLoop(BoardService boardService, DiceService dice, SettingsProvider settingsProvider)
 
     {
         public GameState Start()

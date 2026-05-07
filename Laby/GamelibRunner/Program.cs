@@ -4,7 +4,6 @@ using Lab06_gamelib.Models;
 using Microsoft.Extensions.DependencyInjection;
 
 var serviceProvider = new ServiceCollection()
-    .AddSingleton<GameLog>()
     .AddSingleton<GameLoop>()
     .AddSingleton<BoardService>()
     .AddSingleton<SettingsProvider>()
