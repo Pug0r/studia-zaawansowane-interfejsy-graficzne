@@ -27,21 +27,20 @@ namespace Lab06_gamelib.Services
 
                     if (IsSingularity(x, y))
                     {
-                        field = new Field(20, idCounter++, fieldName, FieldKind.Singularity);
+                        field = new Field(idCounter++, fieldName, FieldKind.Singularity);
                     }
                     else if (IsPirateZone(x, y))
                     {
-                        field = new Field(20, idCounter++, fieldName, FieldKind.PirateAttack);
+                        field = new Field(idCounter++, fieldName, FieldKind.PirateAttack);
                     }
                     else if (IsRailStop(x, y))
                     {
-                        field = new Field(20, idCounter++, fieldName, FieldKind.RailStop);
+                        field = new Field(idCounter++, fieldName, FieldKind.RailStop);
                         railStops.Add(new BoardPosition(x, y));
                     }
                     else
                     {
-                        int richness = 1 + (idCounter % 3);
-                        var planet = new Planet(20, idCounter++, fieldName, richness, system.Id);
+                        var planet = new Planet(idCounter++, fieldName, system.Id);
                         system.PlanetFieldIds.Add(planet.Id);
                         field = planet;
                     }
@@ -92,5 +91,6 @@ namespace Lab06_gamelib.Services
         {
             return (x == 0 && y == 0) || (x == BoardSize - 1 && y == 0) || (x == 0 && y == BoardSize - 1) || (x == BoardSize - 1 && y == BoardSize - 1);
         }
+
     }
 }
