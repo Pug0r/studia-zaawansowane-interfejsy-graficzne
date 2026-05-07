@@ -10,39 +10,49 @@ namespace Lab06_gamelib.Services
         public GameWorld BuildWorld(GameSettings settings)
         {
             var board = new Board(BoardSize);
-            var systems = new List<PlanetarySystem>();
+            var systems = new List<PlanetarySystem>
+            {
+                new PlanetarySystem(1, "System-1"),
+                new PlanetarySystem(2, "System-2"),
+                new PlanetarySystem(3, "System-3"),
+                new PlanetarySystem(4, "System-4"),
+                new PlanetarySystem(5, "System-5")
+            };
             var track = BuildTrack(BoardSize);
             var railStops = new List<BoardPosition>();
+            var layout = new (FieldKind kind, int? systemId)[]
+            {
+                (FieldKind.RailStop, null), (FieldKind.Planet, 1), (FieldKind.Planet, 1), (FieldKind.Planet, 1), (FieldKind.RailStop, null),
+                (FieldKind.Planet, 2), (FieldKind.Planet, 2), (FieldKind.PirateAttack, null), (FieldKind.Planet, 2), (FieldKind.Planet, 2),
+                (FieldKind.Planet, 3), (FieldKind.Planet, 3), (FieldKind.Singularity, null), (FieldKind.Planet, 3), (FieldKind.Planet, 3),
+                (FieldKind.Planet, 4), (FieldKind.PirateAttack, null), (FieldKind.Planet, 4), (FieldKind.Planet, 4), (FieldKind.Planet, 4),
+                (FieldKind.RailStop, null), (FieldKind.Planet, 5), (FieldKind.Planet, 5), (FieldKind.Planet, 5), (FieldKind.RailStop, null)
+            };
             int idCounter = 1;
 
             for (int y = 0; y < BoardSize; y++)
             {
-                var system = new PlanetarySystem(y + 1, $"System-{y + 1}");
-                systems.Add(system);
-
                 for (int x = 0; x < BoardSize; x++)
                 {
+                    int index = y * BoardSize + x;
                     string fieldName = $"Sector-{idCounter}";
+                    var (kind, systemId) = layout[index];
                     Field field;
 
-                    if (IsSingularity(x, y))
+                    if (kind == FieldKind.Planet)
                     {
-                        field = new Field(idCounter++, fieldName, FieldKind.Singularity);
-                    }
-                    else if (IsPirateZone(x, y))
-                    {
-                        field = new Field(idCounter++, fieldName, FieldKind.PirateAttack);
-                    }
-                    else if (IsRailStop(x, y))
-                    {
-                        field = new Field(idCounter++, fieldName, FieldKind.RailStop);
-                        railStops.Add(new BoardPosition(x, y));
+                        int resolvedSystemId = systemId ?? 1;
+                        var planet = new Planet(idCounter++, fieldName, resolvedSystemId);
+                        systems[resolvedSystemId - 1].PlanetFieldIds.Add(planet.Id);
+                        field = planet;
                     }
                     else
                     {
-                        var planet = new Planet(idCounter++, fieldName, system.Id);
-                        system.PlanetFieldIds.Add(planet.Id);
-                        field = planet;
+                        field = new Field(idCounter++, fieldName, kind);
+                        if (kind == FieldKind.RailStop)
+                        {
+                            railStops.Add(new BoardPosition(x, y));
+                        }
                     }
 
                     board.SetField(x, y, field);
@@ -75,21 +85,6 @@ namespace Lab06_gamelib.Services
             }
 
             return track;
-        }
-
-        private static bool IsSingularity(int x, int y)
-        {
-            return x == BoardSize / 2 && y == BoardSize / 2;
-        }
-
-        private static bool IsPirateZone(int x, int y)
-        {
-            return (x == 1 && y == 3) || (x == 3 && y == 1);
-        }
-
-        private static bool IsRailStop(int x, int y)
-        {
-            return (x == 0 && y == 0) || (x == BoardSize - 1 && y == 0) || (x == 0 && y == BoardSize - 1) || (x == BoardSize - 1 && y == BoardSize - 1);
         }
 
     }
