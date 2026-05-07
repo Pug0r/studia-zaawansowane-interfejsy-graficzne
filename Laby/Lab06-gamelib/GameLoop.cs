@@ -240,7 +240,7 @@ namespace Lab06_gamelib
         {
             if (player.HasPirateDefenseCard)
             {
-                bool useCard = player.IsHuman ? AskYesNo("Use pirate defense card?") : true;
+                bool useCard = player.IsHuman ? AskChoice("Use pirate defense card? 1-yes 2-no", 1, 2, false) == 1 : true;
                 if (useCard)
                 {
                     player.HasPirateDefenseCard = false;
@@ -251,7 +251,7 @@ namespace Lab06_gamelib
 
             if (player.Credits >= settings.PirateRansomCost)
             {
-                bool pay = player.IsHuman ? AskYesNo($"Pay ransom {settings.PirateRansomCost}?") : true;
+                bool pay = player.IsHuman ? AskChoice($"Pay ransom {settings.PirateRansomCost}? 1-yes 2-no", 1, 2, false) == 1 : true;
                 if (pay)
                 {
                     player.Credits -= settings.PirateRansomCost;
@@ -272,7 +272,7 @@ namespace Lab06_gamelib
             {
                 if (player.Credits >= settings.PortCost)
                 {
-                    bool buy = player.IsHuman ? AskYesNo("Build port?") : true;
+                    bool buy = player.IsHuman ? AskChoice("Build port? 1-yes 2-no", 1, 2, false) == 1 : true;
                     if (buy)
                     {
                         player.Credits -= settings.PortCost;
@@ -456,30 +456,6 @@ namespace Lab06_gamelib
             planet.FarmLevel++;
             Console.WriteLine($"{player.Name} upgraded farm to {planet.FarmLevel}.");
             return true;
-        }
-
-        private bool AskYesNo(string prompt)
-        {
-            while (true)
-            {
-                Console.Write($"{prompt} (y/n): ");
-                var input = Console.ReadLine();
-                if (input == null)
-                {
-                    continue;
-                }
-
-                var trimmed = input.Trim().ToLowerInvariant();
-                if (trimmed == "y")
-                {
-                    return true;
-                }
-
-                if (trimmed == "n")
-                {
-                    return false;
-                }
-            }
         }
 
         private int? AskChoice(string prompt, int min, int max, bool allowEmpty)
