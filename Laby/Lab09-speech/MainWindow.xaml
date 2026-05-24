@@ -21,7 +21,6 @@
                  Grid.Row="1"
                  AcceptsReturn="True"
                  TextWrapping="Wrap"
-                 VerticalScrollBarVisibility="Auto"
-                 IsReadOnly="True" />
+                 VerticalScrollBarVisibility="Auto" />
     </Grid>
 </Window>

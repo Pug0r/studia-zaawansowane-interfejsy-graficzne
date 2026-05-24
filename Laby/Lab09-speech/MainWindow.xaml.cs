@@ -12,7 +12,7 @@ namespace Lab09_speech
     public partial class MainWindow : Window
     {
         private readonly SpeechSynthesizer _synth = new();
-        private bool _isPlaying;
+        private bool _isPlaying = false;
 
         public MainWindow()
         {
@@ -73,7 +73,6 @@ namespace Lab09_speech
 
         private void UpdatePlayStop()
         {
-            PlayStopButton.IsEnabled = !string.IsNullOrWhiteSpace(TextContent.Text);
             PlayStopButton.Content = _isPlaying ? "Stop" : "Play";
         }
     }
