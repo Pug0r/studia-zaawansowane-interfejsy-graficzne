@@ -14,7 +14,8 @@
 
         <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
             <Button x:Name="OpenFileButton" Content="Open" Width="80" Margin="0,0,8,0" Click="OpenFile_Click" />
-            <Button x:Name="PlayStopButton" Content="Play" Width="80" Click="PlayStop_Click" />
+            <Button x:Name="StartButton" Content="Start" Width="80" Click="Start_Click" />
+            <Button x:Name="PauseButton" IsEnabled="False" Content="Pause" Width="80" Click="Pause_Click" />
         </StackPanel>
 
         <TextBox x:Name="TextContent"

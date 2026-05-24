@@ -1,8 +1,9 @@
-﻿using System;
+﻿using Microsoft.Win32;
+using System;
 using System.IO;
 using System.Speech.Synthesis;
 using System.Windows;
-using Microsoft.Win32;
+using System.Windows.Input;
 
 namespace Lab09_speech
 {
@@ -20,9 +21,7 @@ namespace Lab09_speech
             _synth.SpeakCompleted += (_, _) => Dispatcher.Invoke(() =>
             {
                 _isPlaying = false;
-                UpdatePlayStop();
             });
-            UpdatePlayStop();
         }
 
         private void OpenFile_Click(object sender, RoutedEventArgs e)
@@ -40,10 +39,9 @@ namespace Lab09_speech
             TextContent.Text = File.ReadAllText(dialog.FileName);
             _synth.SpeakAsyncCancelAll();
             _isPlaying = false;
-            UpdatePlayStop();
         }
 
-        private void PlayStop_Click(object sender, RoutedEventArgs e)
+        private void Start_Click(object sender, RoutedEventArgs e)
         {
             var text = TextContent.Text;
             if (string.IsNullOrWhiteSpace(text))
@@ -51,29 +49,37 @@ namespace Lab09_speech
                 return;
             }
 
+            _isPlaying = true;
+            _synth.SpeakAsync(text);
+            UpdatePauseButton();
+        }
+
+        private void Pause_Click(object sender, RoutedEventArgs e)
+        {
             if (_isPlaying)
             {
-                _synth.SpeakAsyncCancelAll();
+                _synth.Pause();
                 _isPlaying = false;
+                PauseButton.Content = "Continue";
             }
             else
             {
-                _synth.SpeakAsync(text);
+                _synth.Resume();
                 _isPlaying = true;
+                PauseButton.Content = "Pause";
             }
+        }
 
-            UpdatePlayStop();
+        private void UpdatePauseButton()
+        {
+
+            PauseButton.IsEnabled = _isPlaying;
         }
 
         protected override void OnClosed(EventArgs e)
         {
             _synth.Dispose();
             base.OnClosed(e);
-        }
-
-        private void UpdatePlayStop()
-        {
-            PlayStopButton.Content = _isPlaying ? "Stop" : "Play";
         }
     }
 }
