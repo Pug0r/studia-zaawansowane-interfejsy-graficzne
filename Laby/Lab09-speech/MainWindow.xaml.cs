@@ -49,8 +49,21 @@ namespace Lab09_speech
                 return;
             }
 
+            var startIndex = TextContent.SelectionStart;
+            if (startIndex < 0 || startIndex >= text.Length)
+            {
+                startIndex = 0;
+            }
+
+            var fragment = text[startIndex..];
+            if (string.IsNullOrWhiteSpace(fragment))
+            {
+                return;
+            }
+
+            _synth.SpeakAsyncCancelAll();
             _isPlaying = true;
-            _synth.SpeakAsync(text);
+            _synth.SpeakAsync(fragment);
             UpdatePauseButton();
         }
 
