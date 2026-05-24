@@ -8,4 +8,5 @@
   <Project Path="Lab05-nunit/Lab05-nunit.csproj" Id="efb06dc9-1206-43f2-b939-b43c9c857d2e" />
   <Project Path="Lab06-gamelib/Lab06-gamelib.csproj" Id="53a3b75b-6138-4e51-8cf0-3607b10c12e8" />
   <Project Path="Lab07-kontrolka/Lab07-kontrolka.csproj" Id="73e0ceb2-8673-4074-9e5b-0903e0efab70" />
+  <Project Path="Lab08-panel/Lab08-panel.csproj" Id="487191f1-66f9-4ca8-9ead-f92534a740e8" />
 </Solution>
