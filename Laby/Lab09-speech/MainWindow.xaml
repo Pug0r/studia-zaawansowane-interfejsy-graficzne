@@ -5,8 +5,23 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Lab09_speech"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
-    <Grid>
+        Title="Speech" Height="450" Width="800">
+    <Grid Margin="12">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
 
+        <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+            <Button x:Name="OpenFileButton" Content="Open" Width="80" Margin="0,0,8,0" Click="OpenFile_Click" />
+            <Button x:Name="PlayStopButton" Content="Play" Width="80" Click="PlayStop_Click" />
+        </StackPanel>
+
+        <TextBox x:Name="TextContent"
+                 Grid.Row="1"
+                 AcceptsReturn="True"
+                 TextWrapping="Wrap"
+                 VerticalScrollBarVisibility="Auto"
+                 IsReadOnly="True" />
     </Grid>
 </Window>
