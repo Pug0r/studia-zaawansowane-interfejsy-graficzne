@@ -52,19 +52,19 @@
 
                 <TextBlock Text="Actions" Foreground="White" FontSize="16" FontWeight="Bold" Margin="0,12,0,8" />
                 <UniformGrid Columns="2" Rows="6" Margin="0,0,0,4">
-                    <Button Content="Take turn" Margin="4" Visibility="{Binding TakeTurnVisibility}" />
-                    <Button Content="Skip turn" Margin="4" Visibility="{Binding SkipTurnVisibility}" />
-                    <Button Content="Pay ransom" Margin="4" Visibility="{Binding PayRansomVisibility}" />
-                    <Button Content="Decline ransom" Margin="4" Visibility="{Binding WaitVisibility}" />
-                    <Button Content="Use pirate defense" Margin="4" Visibility="{Binding UsePirateDefenseVisibility}" />
-                    <Button Content="Keep defense card" Margin="4" Visibility="{Binding DeclinePirateDefenseVisibility}" />
-                    <Button Content="Use rail stop" Margin="4" Visibility="{Binding RailStopVisibility}" />
-                    <Button Content="Build port" Margin="4" Visibility="{Binding BuildPortVisibility}" />
-                    <Button Content="Upgrade settlement" Margin="4" Visibility="{Binding UpgradeSettlementVisibility}" />
-                    <Button Content="Upgrade mine" Margin="4" Visibility="{Binding UpgradeMineVisibility}" />
-                    <Button Content="Upgrade farm" Margin="4" Visibility="{Binding UpgradeFarmVisibility}" />
-                    <Button Content="Build shipyard" Margin="4" Visibility="{Binding BuildShipyardVisibility}" />
-                    <Button Content="Upgrade asteroid mine" Margin="4" Visibility="{Binding UpgradeAsteroidMineVisibility}" />
+                    <Button Content="Take turn" Margin="4" Visibility="{Binding TakeTurnVisibility}" Command="{Binding TakeTurnCommand}" />
+                    <Button Content="Skip turn" Margin="4" Visibility="{Binding SkipTurnVisibility}" Command="{Binding SkipTurnCommand}" />
+                    <Button Content="Pay ransom" Margin="4" Visibility="{Binding PayRansomVisibility}" Command="{Binding PayRansomCommand}" />
+                    <Button Content="Decline ransom" Margin="4" Visibility="{Binding WaitVisibility}" Command="{Binding WaitCommand}" />
+                    <Button Content="Use pirate defense" Margin="4" Visibility="{Binding UsePirateDefenseVisibility}" Command="{Binding UsePirateDefenseCommand}" />
+                    <Button Content="Keep defense card" Margin="4" Visibility="{Binding DeclinePirateDefenseVisibility}" Command="{Binding KeepPirateDefenseCommand}" />
+                    <Button Content="Use rail stop" Margin="4" Visibility="{Binding RailStopVisibility}" Command="{Binding UseRailStopCommand}" />
+                    <Button Content="Build port" Margin="4" Visibility="{Binding BuildPortVisibility}" Command="{Binding BuildPortCommand}" />
+                    <Button Content="Upgrade settlement" Margin="4" Visibility="{Binding UpgradeSettlementVisibility}" Command="{Binding UpgradeSettlementCommand}" />
+                    <Button Content="Upgrade mine" Margin="4" Visibility="{Binding UpgradeMineVisibility}" Command="{Binding UpgradeMineCommand}" />
+                    <Button Content="Upgrade farm" Margin="4" Visibility="{Binding UpgradeFarmVisibility}" Command="{Binding UpgradeFarmCommand}" />
+                    <Button Content="Build shipyard" Margin="4" Visibility="{Binding BuildShipyardVisibility}" Command="{Binding BuildShipyardCommand}" />
+                    <Button Content="Upgrade asteroid mine" Margin="4" Visibility="{Binding UpgradeAsteroidMineVisibility}" Command="{Binding UpgradeAsteroidMineCommand}" />
                 </UniformGrid>
             </StackPanel>
         </Border>

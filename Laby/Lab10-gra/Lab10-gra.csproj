@@ -13,4 +13,9 @@
     <ProjectReference Include="..\Lab06-gamelib\Lab06-gamelib.csproj" />
   </ItemGroup>
 
+	<ItemGroup>
+		<None Include="settings.json">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+	</ItemGroup>
 </Project>
