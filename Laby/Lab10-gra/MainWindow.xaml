@@ -29,10 +29,22 @@
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
                         <Border Margin="4" Padding="6" Background="#222" CornerRadius="6" BorderBrush="{Binding OwnerBrush, FallbackValue=#3A3A3A}" BorderThickness="{Binding OwnerBorderThickness}">
-                            <StackPanel>
-                                <StackPanel Orientation="Horizontal" Margin="0,0,0,4" VerticalAlignment="Center">
-                                    <TextBlock Text="{Binding Icon}" Foreground="White" FontSize="16" FontFamily="Segoe UI Emoji" />
-                                    <ItemsControl ItemsSource="{Binding Markers}" Margin="6,0,0,0">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="*" />
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+
+                                <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding SystemLabel}" Foreground="#CFCFCF" FontSize="10" HorizontalAlignment="Right" />
+
+                                <StackPanel Grid.Row="1" Grid.ColumnSpan="2" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                    <TextBlock Text="{Binding Icon}" Foreground="White" FontSize="24" FontFamily="Segoe UI Emoji" HorizontalAlignment="Center" />
+                                    <ItemsControl ItemsSource="{Binding Markers}" Margin="0,4,0,0" HorizontalAlignment="Center">
                                         <ItemsControl.ItemsPanel>
                                             <ItemsPanelTemplate>
                                                 <StackPanel Orientation="Horizontal" />
@@ -47,10 +59,9 @@
                                         </ItemsControl.ItemTemplate>
                                     </ItemsControl>
                                 </StackPanel>
-                                <TextBlock Text="{Binding Name}" Foreground="White" FontWeight="SemiBold" />
-                                <TextBlock Text="{Binding Kind}" Foreground="#9DCBFF" FontSize="11" />
-                                <TextBlock Text="{Binding Detail}" Foreground="#BBB" FontSize="10" />
-                            </StackPanel>
+
+                                <TextBlock Grid.Row="2" Grid.ColumnSpan="2" Text="{Binding Detail}" Foreground="#BBB" FontSize="10" VerticalAlignment="Bottom" />
+                            </Grid>
                         </Border>
                     </DataTemplate>
                 </ItemsControl.ItemTemplate>

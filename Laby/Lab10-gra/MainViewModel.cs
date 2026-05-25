@@ -19,7 +19,8 @@ namespace Lab10_gra
     public class MainViewModel : INotifyPropertyChanged
     {
         private readonly GameEngine _engine = new();
-        private readonly StringBuilder _logBuilder = new();
+        private readonly List<string> _logEntries = new();
+        private int _logCounter = 0;
 
         public ObservableCollection<BoardCellViewModel> BoardCells { get; } = new();
         public ICommand TakeTurnCommand { get; }
@@ -158,17 +159,10 @@ namespace Lab10_gra
 
         private void AppendLog(string message)
         {
-            if (_logBuilder.Length == 0)
-            {
-                _logBuilder.Append(message);
-            }
-            else
-            {
-                _logBuilder.AppendLine();
-                _logBuilder.Append(message);
-            }
-
-            LogLabel = _logBuilder.ToString();
+            _logCounter++;
+            string entry = $"{_logCounter:000} {message}";
+            _logEntries.Insert(0, entry);
+            LogLabel = string.Join(Environment.NewLine, _logEntries);
         }
 
         private void UpdateDecisions(IReadOnlyCollection<DecisionType> decisions)
@@ -225,6 +219,7 @@ namespace Lab10_gra
         private FieldKind _kind;
         private string _detail;
         private string _icon;
+        private string _systemLabel = string.Empty;
         private List<PlayerMarkerViewModel> _markers = new();
         private Brush? _ownerBrush;
         private Thickness _ownerBorderThickness = new(1);
@@ -233,6 +228,7 @@ namespace Lab10_gra
         public FieldKind Kind { get => _kind; private set => SetProperty(ref _kind, value, nameof(Kind)); }
         public string Detail { get => _detail; private set => SetProperty(ref _detail, value, nameof(Detail)); }
         public string Icon { get => _icon; private set => SetProperty(ref _icon, value, nameof(Icon)); }
+        public string SystemLabel { get => _systemLabel; private set => SetProperty(ref _systemLabel, value, nameof(SystemLabel)); }
         public List<PlayerMarkerViewModel> Markers { get => _markers; private set => SetProperty(ref _markers, value, nameof(Markers)); }
         public Brush? OwnerBrush { get => _ownerBrush; private set => SetProperty(ref _ownerBrush, value, nameof(OwnerBrush)); }
         public Thickness OwnerBorderThickness { get => _ownerBorderThickness; private set => SetProperty(ref _ownerBorderThickness, value, nameof(OwnerBorderThickness)); }
@@ -250,6 +246,7 @@ namespace Lab10_gra
             Kind = field.Kind;
             Detail = BuildDetail(field);
             Icon = GetIcon(field.Kind);
+            SystemLabel = BuildSystemLabel(field);
         }
 
         public void SetMarkers(IEnumerable<PlayerMarkerViewModel>? markers)
@@ -267,12 +264,16 @@ namespace Lab10_gra
         {
             if (field is Planet planet)
             {
-                string owner = planet.OwnerId == null ? "Owner: none" : $"Owner: {planet.OwnerId}";
                 string port = planet.HasPort ? "Port: yes" : "Port: no";
-                return $"System {planet.SystemId} | {owner} | {port} | S:{planet.SettlementLevel} M:{planet.MineLevel} F:{planet.FarmLevel}";
+                return $"{port} | S:{planet.SettlementLevel} M:{planet.MineLevel} F:{planet.FarmLevel}";
             }
 
-            return field.SystemId != null ? $"System {field.SystemId}" : field.Kind.ToString();
+            return string.Empty;
+        }
+
+        private static string BuildSystemLabel(Field field)
+        {
+            return field.SystemId != null ? $"S{field.SystemId}" : string.Empty;
         }
 
         private static string GetIcon(FieldKind kind)
