@@ -3,14 +3,56 @@
 <html lang="en" xmlns="http://www.w3.org/1999/xhtml">
 <head>
     <meta charset="utf-8" />
-
-    <title> Strona z jQuery</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Lab11 - js</title>
 </head>
 <body>
-    
-    <script>
-		
-    </script>
+    <main class="window">
+        <section class="grid">
+            <div class="header-row">
+                <button class="action-button" id="callFunctions">Wywolaj funkcje</button>
+            </div>
 
+            <div class="uniform-grid">
+                <div class="stack-panel">
+                    <h3 id="potega">potega</h3>
+                    <input class="textbox" id="PotegaInputArg1" value="Argument1" />
+                    <input class="textbox" id="PotegaInputArg2" value="Argument2" />
+                    <input class="textbox" id="PotegaInputArg3" value="Argument3" />
+                    <input class="textbox" id="PotegaResult" value="Wynik..." readonly />
+                </div>
+
+                <div class="stack-panel">
+                    <h3 id="zapiszWTablicy">zapiszWTablicy</h3>
+                    <input class="textbox" id="zapiszWTablicyArg1" value="Argument1" />
+                    <input class="textbox" id="zapiszWTablicyArg2" value="Argument2" />
+                    <input class="textbox" id="zapiszWTablicyResult" value="Wynik..." readonly />
+                </div>
+
+                <div class="stack-panel">
+                    <h3 id="poleKola">poleKola</h3>
+                    <input class="textbox" id="poleKolaArg1" value="Argument1" />
+                    <input class="textbox" id="poleKolaResult" value="Wynik..." readonly />
+                </div>
+
+                <div class="stack-panel">
+                    <h3>sumaCyfr</h3>
+                    <input class="textbox" id="sumaCyfrArg1" value="Argument1" />
+                    <input class="textbox" id="sumaCyfrResult" value="Wynik..." readonly />
+                </div>
+
+                <div class="stack-panel">
+                    <h3>zamienElementy</h3>
+                    <input class="textbox" id="zamienElementyArg1" value="Argument1" />
+                    <input class="textbox" id="zamienElementyArg2" value="Argument2" />
+                    <input class="textbox" id="zamienElementyArg3" value="Argument3" />
+                    <input class="textbox" id="zamienElementyArg4" value="Argument4" />
+                    <input class="textbox" id="zamienElementyResult" value="Wynik..." readonly />
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script src="skrypt.js"></script>
 </body>
 </html>
