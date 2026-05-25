@@ -12,6 +12,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
+using System.Windows.Media;
 
 namespace Lab10_gra
 {
@@ -52,6 +53,7 @@ namespace Lab10_gra
         private Visibility _takeTurnVisibility = Visibility.Visible;
         private Visibility _skipTurnVisibility = Visibility.Visible;
         private Visibility _payRansomVisibility = Visibility.Collapsed;
+        private Visibility _declineRansomVisibility = Visibility.Collapsed;
         private Visibility _usePirateDefenseVisibility = Visibility.Collapsed;
         private Visibility _declinePirateDefenseVisibility = Visibility.Collapsed;
         private Visibility _railStopVisibility = Visibility.Collapsed;
@@ -66,6 +68,7 @@ namespace Lab10_gra
         public Visibility TakeTurnVisibility { get => _takeTurnVisibility; private set => SetProperty(ref _takeTurnVisibility, value, nameof(TakeTurnVisibility)); }
         public Visibility SkipTurnVisibility { get => _skipTurnVisibility; private set => SetProperty(ref _skipTurnVisibility, value, nameof(SkipTurnVisibility)); }
         public Visibility PayRansomVisibility { get => _payRansomVisibility; private set => SetProperty(ref _payRansomVisibility, value, nameof(PayRansomVisibility)); }
+        public Visibility DeclineRansomVisibility { get => _declineRansomVisibility; private set => SetProperty(ref _declineRansomVisibility, value, nameof(DeclineRansomVisibility)); }
         public Visibility UsePirateDefenseVisibility { get => _usePirateDefenseVisibility; private set => SetProperty(ref _usePirateDefenseVisibility, value, nameof(UsePirateDefenseVisibility)); }
         public Visibility DeclinePirateDefenseVisibility { get => _declinePirateDefenseVisibility; private set => SetProperty(ref _declinePirateDefenseVisibility, value, nameof(DeclinePirateDefenseVisibility)); }
         public Visibility RailStopVisibility { get => _railStopVisibility; private set => SetProperty(ref _railStopVisibility, value, nameof(RailStopVisibility)); }
@@ -124,11 +127,33 @@ namespace Lab10_gra
 
         private void UpdateState(GameState state)
         {
+            var markers = BuildPlayerMarkers(state);
+
             foreach (var cell in BoardCells)
             {
                 var field = state.World.Board.GetField(cell.X, cell.Y);
                 cell.UpdateFromField(field);
+                cell.SetMarkers(markers.TryGetValue((cell.X, cell.Y), out var list) ? list : null);
+                cell.SetOwnership(field is Planet planet && planet.OwnerId != null ? GetPlayerBrush(planet.OwnerId.Value) : null);
             }
+        }
+
+        private Dictionary<(int x, int y), List<PlayerMarkerViewModel>> BuildPlayerMarkers(GameState state)
+        {
+            var markers = new Dictionary<(int x, int y), List<PlayerMarkerViewModel>>();
+            foreach (var player in state.Players)
+            {
+                var key = (player.X, player.Y);
+                if (!markers.TryGetValue(key, out var list))
+                {
+                    list = new List<PlayerMarkerViewModel>();
+                    markers[key] = list;
+                }
+
+                list.Add(new PlayerMarkerViewModel(player.Name, GetPlayerBrush(player.Id)));
+            }
+
+            return markers;
         }
 
         private void AppendLog(string message)
@@ -151,7 +176,8 @@ namespace Lab10_gra
             TakeTurnVisibility = GetVisibility(decisions, DecisionType.TakeTurn, defaultVisible: true);
             SkipTurnVisibility = GetVisibility(decisions, DecisionType.SkipTurn, defaultVisible: true);
             PayRansomVisibility = GetVisibility(decisions, DecisionType.PayRansom);
-            WaitVisibility = GetVisibility(decisions, DecisionType.Wait);
+            DeclineRansomVisibility = decisions.Contains(DecisionType.PayRansom) && decisions.Contains(DecisionType.Wait) ? Visibility.Visible : Visibility.Collapsed;
+            WaitVisibility = decisions.Contains(DecisionType.PayRansom) ? Visibility.Collapsed : GetVisibility(decisions, DecisionType.Wait);
             UsePirateDefenseVisibility = GetVisibility(decisions, DecisionType.UsePirateDefense);
             DeclinePirateDefenseVisibility = GetVisibility(decisions, DecisionType.KeepPirateDefense);
             RailStopVisibility = GetVisibility(decisions, DecisionType.UseRailStop);
@@ -167,6 +193,15 @@ namespace Lab10_gra
         {
             return decisions.Contains(decision) || (defaultVisible && decisions.Count == 0) ? Visibility.Visible : Visibility.Collapsed;
         }
+
+        private static Brush GetPlayerBrush(int playerId) => playerId switch
+        {
+            1 => Brushes.Gold,
+            2 => Brushes.DodgerBlue,
+            3 => Brushes.LimeGreen,
+            4 => Brushes.OrangeRed,
+            _ => Brushes.White
+        };
 
         private void OnPropertyChanged(string propertyName) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 
@@ -190,11 +225,17 @@ namespace Lab10_gra
         private FieldKind _kind;
         private string _detail;
         private string _icon;
+        private List<PlayerMarkerViewModel> _markers = new();
+        private Brush? _ownerBrush;
+        private Thickness _ownerBorderThickness = new(1);
 
         public string Name { get => _name; private set => SetProperty(ref _name, value, nameof(Name)); }
         public FieldKind Kind { get => _kind; private set => SetProperty(ref _kind, value, nameof(Kind)); }
         public string Detail { get => _detail; private set => SetProperty(ref _detail, value, nameof(Detail)); }
         public string Icon { get => _icon; private set => SetProperty(ref _icon, value, nameof(Icon)); }
+        public List<PlayerMarkerViewModel> Markers { get => _markers; private set => SetProperty(ref _markers, value, nameof(Markers)); }
+        public Brush? OwnerBrush { get => _ownerBrush; private set => SetProperty(ref _ownerBrush, value, nameof(OwnerBrush)); }
+        public Thickness OwnerBorderThickness { get => _ownerBorderThickness; private set => SetProperty(ref _ownerBorderThickness, value, nameof(OwnerBorderThickness)); }
 
         public BoardCellViewModel(Field field, int x, int y)
         {
@@ -209,6 +250,17 @@ namespace Lab10_gra
             Kind = field.Kind;
             Detail = BuildDetail(field);
             Icon = GetIcon(field.Kind);
+        }
+
+        public void SetMarkers(IEnumerable<PlayerMarkerViewModel>? markers)
+        {
+            Markers = markers == null ? new List<PlayerMarkerViewModel>() : new List<PlayerMarkerViewModel>(markers);
+        }
+
+        public void SetOwnership(Brush? brush)
+        {
+            OwnerBrush = brush;
+            OwnerBorderThickness = brush == null ? new Thickness(1) : new Thickness(2);
         }
 
         private static string BuildDetail(Field field)
@@ -248,6 +300,18 @@ namespace Lab10_gra
 
             field = value;
             OnPropertyChanged(propertyName);
+        }
+    }
+
+    public class PlayerMarkerViewModel
+    {
+        public string Label { get; }
+        public Brush Color { get; }
+
+        public PlayerMarkerViewModel(string label, Brush color)
+        {
+            Label = label;
+            Color = color;
         }
     }
 

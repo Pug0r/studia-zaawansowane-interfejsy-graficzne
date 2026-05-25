@@ -93,6 +93,7 @@ namespace Lab10_gra.Game
 
             var field = state.World.Board.GetField(player.X, player.Y);
             RaiseLog($"{player.Name} rolled {roll} and landed on {field.Name} ({field.Kind}).");
+            RaiseStateChanged();
 
             await ResolveFieldAsync(state, player, field);
         }

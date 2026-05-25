@@ -28,9 +28,25 @@
                 </ItemsControl.ItemsPanel>
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
-                        <Border Margin="4" Padding="6" Background="#222" CornerRadius="6" BorderBrush="#3A3A3A" BorderThickness="1">
+                        <Border Margin="4" Padding="6" Background="#222" CornerRadius="6" BorderBrush="{Binding OwnerBrush, FallbackValue=#3A3A3A}" BorderThickness="{Binding OwnerBorderThickness}">
                             <StackPanel>
-                                <TextBlock Text="{Binding Icon}" Foreground="White" FontSize="16" Margin="0,0,0,4" FontFamily="Segoe UI Emoji" />
+                                <StackPanel Orientation="Horizontal" Margin="0,0,0,4" VerticalAlignment="Center">
+                                    <TextBlock Text="{Binding Icon}" Foreground="White" FontSize="16" FontFamily="Segoe UI Emoji" />
+                                    <ItemsControl ItemsSource="{Binding Markers}" Margin="6,0,0,0">
+                                        <ItemsControl.ItemsPanel>
+                                            <ItemsPanelTemplate>
+                                                <StackPanel Orientation="Horizontal" />
+                                            </ItemsPanelTemplate>
+                                        </ItemsControl.ItemsPanel>
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <Border Background="{Binding Color}" CornerRadius="8" Margin="2,0,0,0" Padding="4,1">
+                                                    <TextBlock Text="{Binding Label}" Foreground="White" FontSize="10" FontWeight="SemiBold" />
+                                                </Border>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </StackPanel>
                                 <TextBlock Text="{Binding Name}" Foreground="White" FontWeight="SemiBold" />
                                 <TextBlock Text="{Binding Kind}" Foreground="#9DCBFF" FontSize="11" />
                                 <TextBlock Text="{Binding Detail}" Foreground="#BBB" FontSize="10" />
@@ -55,7 +71,7 @@
                     <Button Content="Take turn" Margin="4" Visibility="{Binding TakeTurnVisibility}" Command="{Binding TakeTurnCommand}" />
                     <Button Content="Skip turn" Margin="4" Visibility="{Binding SkipTurnVisibility}" Command="{Binding SkipTurnCommand}" />
                     <Button Content="Pay ransom" Margin="4" Visibility="{Binding PayRansomVisibility}" Command="{Binding PayRansomCommand}" />
-                    <Button Content="Decline ransom" Margin="4" Visibility="{Binding WaitVisibility}" Command="{Binding WaitCommand}" />
+                    <Button Content="Decline ransom" Margin="4" Visibility="{Binding DeclineRansomVisibility}" Command="{Binding WaitCommand}" />
                     <Button Content="Use pirate defense" Margin="4" Visibility="{Binding UsePirateDefenseVisibility}" Command="{Binding UsePirateDefenseCommand}" />
                     <Button Content="Keep defense card" Margin="4" Visibility="{Binding DeclinePirateDefenseVisibility}" Command="{Binding KeepPirateDefenseCommand}" />
                     <Button Content="Use rail stop" Margin="4" Visibility="{Binding RailStopVisibility}" Command="{Binding UseRailStopCommand}" />
