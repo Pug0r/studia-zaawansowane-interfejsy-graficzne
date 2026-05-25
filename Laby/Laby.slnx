@@ -10,4 +10,5 @@
   <Project Path="Lab07-kontrolka/Lab07-kontrolka.csproj" Id="73e0ceb2-8673-4074-9e5b-0903e0efab70" />
   <Project Path="Lab08-panel/Lab08-panel.csproj" Id="487191f1-66f9-4ca8-9ead-f92534a740e8" />
   <Project Path="Lab09-speech/Lab09-speech.csproj" Id="5b2685d9-3677-4e0f-a459-ee9865dd6785" />
+  <Project Path="Lab10-gra/Lab10-gra.csproj" Id="10f2800e-20ea-44e8-aa73-c8e509bd1341" />
 </Solution>

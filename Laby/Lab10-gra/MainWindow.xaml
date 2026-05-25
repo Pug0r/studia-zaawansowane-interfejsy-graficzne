@@ -5,8 +5,57 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Lab10_gra"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
-    <Grid>
+        Title="Galaxy Trader" Height="720" Width="1100">
+    <Window.DataContext>
+        <local:MainViewModel />
+    </Window.DataContext>
+    <Grid Background="#111">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*" />
+            <RowDefinition Height="160" />
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="3*" />
+            <ColumnDefinition Width="2*" />
+        </Grid.ColumnDefinitions>
 
+        <Border Grid.Row="0" Grid.Column="0" Margin="12" Background="#1A1A1A" CornerRadius="8" BorderBrush="#333" BorderThickness="1">
+            <ItemsControl ItemsSource="{Binding BoardCells}">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <UniformGrid Rows="5" Columns="5" />
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Border Margin="4" Padding="6" Background="#222" CornerRadius="6" BorderBrush="#3A3A3A" BorderThickness="1">
+                            <StackPanel>
+                                <TextBlock Text="{Binding Icon}" Foreground="White" FontSize="16" Margin="0,0,0,4" FontFamily="Segoe UI Emoji" />
+                                <TextBlock Text="{Binding Name}" Foreground="White" FontWeight="SemiBold" />
+                                <TextBlock Text="{Binding Kind}" Foreground="#9DCBFF" FontSize="11" />
+                                <TextBlock Text="{Binding Detail}" Foreground="#BBB" FontSize="10" />
+                            </StackPanel>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </Border>
+
+        <Border Grid.Row="0" Grid.Column="1" Margin="12,12,12,6" Background="#1A1A1A" CornerRadius="8" BorderBrush="#333" BorderThickness="1">
+            <StackPanel Margin="16">
+                <TextBlock Text="Game Info" Foreground="White" FontSize="18" FontWeight="Bold" Margin="0,0,0,12" />
+                <TextBlock Text="{Binding RoundLabel}" Foreground="#D6D6D6" FontSize="14" Margin="0,0,0,6" />
+                <TextBlock Text="{Binding PlayerLabel}" Foreground="#D6D6D6" FontSize="14" Margin="0,0,0,6" />
+                <TextBlock Text="{Binding CreditsLabel}" Foreground="#D6D6D6" FontSize="14" Margin="0,0,0,6" />
+                <TextBlock Text="{Binding GalacticTicketsLabel}" Foreground="#D6D6D6" FontSize="14" Margin="0,0,0,6" />
+                <TextBlock Text="{Binding PirateDefenseCardLabel}" Foreground="#D6D6D6" FontSize="14" Margin="0,0,0,6" />
+            </StackPanel>
+        </Border>
+
+        <Border Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" Margin="12,6,12,12" Background="#1A1A1A" CornerRadius="8" BorderBrush="#333" BorderThickness="1">
+            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <TextBlock Text="{Binding LogLabel}" Foreground="#D6D6D6" FontSize="13" Margin="12" TextWrapping="Wrap" />
+            </ScrollViewer>
+        </Border>
     </Grid>
 </Window>

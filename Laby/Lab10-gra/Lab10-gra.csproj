@@ -9,4 +9,8 @@
     <UseWPF>true</UseWPF>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\Lab06-gamelib\Lab06-gamelib.csproj" />
+  </ItemGroup>
+
 </Project>
