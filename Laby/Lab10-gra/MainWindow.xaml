@@ -49,6 +49,23 @@
                 <TextBlock Text="{Binding CreditsLabel}" Foreground="#D6D6D6" FontSize="14" Margin="0,0,0,6" />
                 <TextBlock Text="{Binding GalacticTicketsLabel}" Foreground="#D6D6D6" FontSize="14" Margin="0,0,0,6" />
                 <TextBlock Text="{Binding PirateDefenseCardLabel}" Foreground="#D6D6D6" FontSize="14" Margin="0,0,0,6" />
+
+                <TextBlock Text="Actions" Foreground="White" FontSize="16" FontWeight="Bold" Margin="0,12,0,8" />
+                <UniformGrid Columns="2" Rows="6" Margin="0,0,0,4">
+                    <Button Content="Take turn" Margin="4" Visibility="{Binding TakeTurnVisibility}" />
+                    <Button Content="Skip turn" Margin="4" Visibility="{Binding SkipTurnVisibility}" />
+                    <Button Content="Pay ransom" Margin="4" Visibility="{Binding PayRansomVisibility}" />
+                    <Button Content="Decline ransom" Margin="4" Visibility="{Binding WaitVisibility}" />
+                    <Button Content="Use pirate defense" Margin="4" Visibility="{Binding UsePirateDefenseVisibility}" />
+                    <Button Content="Keep defense card" Margin="4" Visibility="{Binding DeclinePirateDefenseVisibility}" />
+                    <Button Content="Use rail stop" Margin="4" Visibility="{Binding RailStopVisibility}" />
+                    <Button Content="Build port" Margin="4" Visibility="{Binding BuildPortVisibility}" />
+                    <Button Content="Upgrade settlement" Margin="4" Visibility="{Binding UpgradeSettlementVisibility}" />
+                    <Button Content="Upgrade mine" Margin="4" Visibility="{Binding UpgradeMineVisibility}" />
+                    <Button Content="Upgrade farm" Margin="4" Visibility="{Binding UpgradeFarmVisibility}" />
+                    <Button Content="Build shipyard" Margin="4" Visibility="{Binding BuildShipyardVisibility}" />
+                    <Button Content="Upgrade asteroid mine" Margin="4" Visibility="{Binding UpgradeAsteroidMineVisibility}" />
+                </UniformGrid>
             </StackPanel>
         </Border>
 
