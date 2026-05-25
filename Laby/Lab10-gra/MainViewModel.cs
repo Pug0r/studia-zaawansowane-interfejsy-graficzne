@@ -1,6 +1,7 @@
 using Lab06_gamelib;
 using Lab06_gamelib.Models;
 using Lab06_gamelib.Services;
+using Lab10_gra.EndGame;
 using Lab10_gra.Game;
 using Lab10_gra.Game.Helpers;
 using System;
@@ -112,7 +113,11 @@ namespace Lab10_gra
             _engine.StateChanged += UpdateState;
             _engine.PlayerChanged += UpdatePlayerInfo;
             _engine.DecisionsChanged += UpdateDecisions;
-            _engine.GameFinished += () => UpdateDecisions(Array.Empty<DecisionType>());
+            _engine.GameFinished += () =>
+            {
+                UpdateDecisions(Array.Empty<DecisionType>());
+                ShowEndGameResults();
+            };
             _ = _engine.StartAsync(world);
         }
 
@@ -208,6 +213,38 @@ namespace Lab10_gra
 
             field = value;
             OnPropertyChanged(propertyName ?? string.Empty);
+        }
+
+        private void ShowEndGameResults()
+        {
+            if (_engine.State == null)
+            {
+                return;
+            }
+
+            var results = BuildResults(_engine.State);
+            var window = new EndGameWindow(new EndGameViewModel(results))
+            {
+                Owner = Application.Current.MainWindow
+            };
+            window.ShowDialog();
+        }
+
+        private static List<PlayerResultViewModel> BuildResults(GameState state)
+        {
+            var ordered = new List<Player>(state.Players);
+            ordered.Sort((a, b) => b.Credits.CompareTo(a.Credits));
+
+            var results = new List<PlayerResultViewModel>();
+            for (int i = 0; i < ordered.Count; i++)
+            {
+                var player = ordered[i];
+                int shipyards = GameWorldQueries.CountShipyards(state, player);
+                int asteroid = GameWorldQueries.SumAsteroidMineLevels(state, player);
+                results.Add(new PlayerResultViewModel(i + 1, player.Name, player.Credits, player.OwnedFieldIds.Count, shipyards, asteroid));
+            }
+
+            return results;
         }
     }
 
